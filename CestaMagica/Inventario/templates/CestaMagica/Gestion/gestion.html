@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+    <title>Cesta Magica | Gestion</title>
+{% endblock %}
+
+{% block content %}
+<div class="container mb-3">
+    <div class="row mb-3 mt-3">
+        <div class="col">
+            <h1>Gestión de Productos</h1>
+        </div>
+        <div class="col text-end">
+            <a href="{% url 'agregar_producto' %}" class="btn btn-primary">Agregar producto</a>
+        </div>
+    </div>
+    <form method="GET" action="{% url 'gestion' %}" class="row g-3 mb-3">
+        <div class="col-md-4">
+            <input type="text" name="search" class="form-control" placeholder="Buscar producto..." value="{{ request.GET.search }}">
+        </div>
+        <div class="col-md-3">
+            <select name="marca" class="form-select">
+                <option value="">Filtrar por marca</option>
+                {% for marca in marcas %}
+                    <option value="{{ marca.id }}" {% if marca.id|stringformat:"s" == request.GET.marca %}selected{% endif %}>
+                        {{ marca.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="categoria" class="form-select">
+                <option value="">Filtrar por categoría</option>
+                {% for categoria in categorias %}
+                    <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == request.GET.categoria %}selected{% endif %}>
+                        {{ categoria.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 text-end d-flex justify-content-end gap-2">
+            <button type="submit" class="btn btn-success">Buscar</button>
+            <a href="{% url 'gestion' %}" class="btn btn-secondary">Limpiar</a>
+        </div>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Precio</th>
+                    <th scope="col">Categoría</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <th scope="row">{{ producto.nombre }}</th>
+                    <td>{{ producto.precio }}</td>
+                    <td>{{ producto.categoria }}</td>
+                    <td>{{ producto.marca }}</td>
+                    <td>
+                        <span class="{% if producto.stock < 10 %}text-danger{% else %}text-success{% endif %}">
+                            {{ producto.stock }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning">
+                            <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url 'eliminar_producto' producto.id %}" 
+                             class="btn btn-danger" 
+                             onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?');">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
