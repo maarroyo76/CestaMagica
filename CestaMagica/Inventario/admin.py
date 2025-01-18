@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Producto, Categoria, Marca
+from .models import Producto, Categoria, Marca, User
 
 # Register your models here.
 

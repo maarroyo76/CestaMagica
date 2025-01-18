@@ -1,16 +1,25 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Producto, Categoria, Marca
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect, HttpResponse
 
 # Create your views here.
 
 def home(request):
-    productos = Producto.objects.all()
-    return render(request, 'CestaMagica/home.html', {'productos': productos})
+    productos_destacados = Producto.objects.filter(destacado=True)[:8]
+    return render(request, 'CestaMagica/home.html', {'productos_destacados': productos_destacados})
 
 def productos(request):
     productos = Producto.objects.all()
     return render(request, 'CestaMagica/productos.html', {'productos': productos})
 
+def retroceder(request):
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required
 def gestion(request):
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
@@ -41,6 +50,7 @@ def gestion(request):
 def contacto(request):
     return render(request, 'CestaMagica/contacto.html')
 
+@login_required
 def agregar_producto(request):
 
     if request.method == 'POST':
@@ -68,12 +78,14 @@ def agregar_producto(request):
             producto.imagen = imagen
         producto.save()
         
+        messages.success(request, 'Producto agregado correctamente')
         return redirect('gestion')
         
     categorias = Categoria.objects.all()
     marcas = Marca.objects.all()
     return render(request, 'CestaMagica/Gestion/agregar.html',  {'categorias': categorias, 'marcas': marcas})
 
+@login_required
 def editar_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
 
@@ -94,6 +106,8 @@ def editar_producto(request, id):
             producto.imagen = request.FILES.get('imagen')
 
         producto.save()
+
+        messages.success(request, 'Producto editado correctamente')
         return redirect('gestion')
 
     categorias = Categoria.objects.all()
@@ -110,4 +124,30 @@ def editar_producto(request, id):
 def eliminar_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
     producto.delete()
+
+    messages.success(request, 'Producto eliminado correctamente')
     return redirect('gestion')
+
+
+def detalle_producto(request, id):
+    producto = get_object_or_404(Producto, id=id)
+    return render(request, 'CestaMagica/detalle.html', {'producto': producto})
+
+def inicio_sesion(request):
+    if request.method == 'POST':
+        username = request.POST.get('user')
+        clave = request.POST.get('pass')
+
+        user = authenticate(request, username=username, password=clave)
+
+        if user is not None:
+            login(request, user)
+            return redirect('gestion')
+        else:
+            return render(request, 'CestaMagica/auth/inicio_sesion.html', {'error': 'Usuario o contraseña incorrectos'})
+
+    return render(request, 'CestaMagica/auth/inicio_sesion.html')
+
+def cerrar_sesion(request):
+    logout(request)
+    return redirect('login')

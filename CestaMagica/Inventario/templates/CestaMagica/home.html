@@ -1,10 +1,99 @@
 {% extends "base.html" %}
 
-{%block titulo %}
-    <title>Cesta Magica | Inicio</title>
-{% endblock  %}
+{% block titulo %}
+  <title>Cesta Mágica | Inicio</title>
+{% endblock %}
+
+{% block css %}
+<style>
+  .hero {
+    background-size: cover;
+    background-position: center;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+    font-weight: bold;
+  }
+
+  .hero p {
+    font-size: 1.25rem;
+  }
+
+  .hero .btn {
+    margin-top: 20px;
+  }
+
+  .product-card img {
+    height: 150px;
+    object-fit: cover;
+  }
+
+  .benefits .icon {
+    font-size: 2rem;
+    color: #198754;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
+<div class="hero mt-5">
+  <h1>Bienvenidos a Cesta Mágica</h1>
+  <p>Encuentra los mejores productos a precios increíbles.</p>
+</div>
+
 <div class="container mt-5">
-  <h1 class="text-center mb-4">Bienvenido a Cesta Magica!</h1>
-{% endblock  %}
+  <!-- Productos destacados -->
+  <h2 class="text-center mb-4">Productos Destacados</h2>
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for producto in productos_destacados %}
+    <div class="col">
+      <div class="card product-card">
+        <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
+        <div class="card-body">
+          <h5 class="card-title text-truncate">{{ producto.nombre }}</h5>
+          <p class="card-text text-truncate">{{ producto.descripcion|truncatechars:50 }}</p>
+          <p class="card-text text-primary"><strong>${{ producto.precio }}</strong></p>
+          <a href="{% url 'detalle_producto' producto.id %}" class="btn btn-outline-success">Ver Más</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Beneficios -->
+<div class="container mt-5">
+  <h2 class="text-center mb-4">¿Por qué elegirnos?</h2>
+  <div class="row text-center benefits">
+    <div class="col-md-4">
+      <i class="bi bi-truck icon"></i>
+      <h5>Envíos rápidos</h5>
+      <p>Entrega garantizada en 24-48 horas.</p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-star icon"></i>
+      <h5>Productos de calidad</h5>
+      <p>Solo trabajamos con las mejores marcas.</p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-shield-check icon"></i>
+      <h5>Compra segura</h5>
+      <p>Protegemos tus datos y tus transacciones.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Llamado a la acción -->
+<div class="container text-center mt-5">
+  <h3>¡Empieza a comprar ahora!</h3>
+  <a href="{% url 'productos' %}" class="btn btn-success btn-lg mb-4">Ver todos los productos</a>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+  // Si necesitas agregar interactividad específica
+</script>
+{% endblock %}

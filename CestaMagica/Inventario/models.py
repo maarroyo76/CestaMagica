@@ -22,6 +22,16 @@ class Producto(models.Model):
     imagen = models.ImageField(upload_to='productos/')
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     marca = models.ForeignKey(Marca, on_delete=models.CASCADE)
+    destacado = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nombre
+
+
+class User(models.Model):
+    username = models.CharField(max_length=20)
+    password = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.nombre
+    

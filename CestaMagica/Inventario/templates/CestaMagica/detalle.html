@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block css %}
+<style>
+  .card {
+    padding: 15px;
+    border-color: #dedede;
+  }
+
+  .card img {
+    object-fit: contain;
+    height: 60vh;
+    width: 100%;
+  }
+
+  .price {
+    color: #28a745;
+    font-weight: bold;
+  }
+
+  .card .card-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .card-text {
+    font-size: 1.1rem;
+  }
+</style>
+{% endblock css %}
+
+{% block titulo %}
+  <title>Cesta Magica | {{producto.nombre}}</title>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg border-2">
+                <img 
+                    src="{{ producto.imagen.url }}" 
+                    class="img-fluid rounded" 
+                    alt="{{ producto.nombre }}" 
+                />
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow-lg mb-3" style="min-height: 50%;">
+                <div class="card-body">
+                    <div>
+                        <h2 class="card-title mb-3">{{ producto.nombre }}</h2>
+                        <h4 class="text-success mb-3">
+                            <strong class="price" data-raw-price="{{ producto.precio }}">Precio: ${{ producto.precio }}</strong>
+                        </h4>
+                    </div>
+                    
+                    <div>
+                        <p class="card-text text-muted mb-1">
+                            {{ producto.descripcion }}
+                        </p>
+                        <p class="card-text mt-1">
+                            <small class="text-success">Stock Disponible: {{ producto.stock }}</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mb-3">
+                <a href="{% url 'productos' %}" class="btn btn-outline-secondary">
+                    Volver a Productos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+  window.onload = function() {
+    const priceElements = document.querySelectorAll('.price');
+    Array.prototype.forEach.call(priceElements, function(element) {
+      const price = parseFloat(element.getAttribute('data-raw-price'));
+      if (!isNaN(price)) {
+        element.textContent = price.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
+      }
+    });
+  }
+</script>
+{% endblock js %}
