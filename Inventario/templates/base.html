@@ -28,16 +28,16 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarContent">
-          <form class="d-flex mx-auto" style="width: 60%" role="search">
+          <form class="d-flex mx-auto" style="width: 60%" role="search" action="{% url 'productos' %}" method="GET">
             <input
-              class="form-control me-2"
-              type="search"
-              placeholder="Buscar productos..."
-              aria-label="Search"
+                class="form-control me-2"
+                type="search"
+                name="search"
+                placeholder="Buscar productos..."
+                aria-label="Search"
+                value="{{ request.GET.search|default:'' }}"
             />
-            <button class="btn btn-outline-success" type="submit">
-              Buscar
-            </button>
+            <button class="btn btn-outline-success" type="submit">Buscar</button>
           </form>
           <ul class="navbar-nav ms-auto">
             <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Inicio</a></li>

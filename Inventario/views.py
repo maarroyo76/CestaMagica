@@ -13,7 +13,48 @@ def home(request):
 
 def productos(request):
     productos = Producto.objects.all()
-    return render(request, 'CestaMagica/productos.html', {'productos': productos})
+    categorias = Categoria.objects.all()
+    marcas = Marca.objects.all()
+
+    search_query = request.GET.get('search', '')
+    marca_id = request.GET.get('marca', '')
+    categoria_id = request.GET.get('categoria', '')
+    orden = request.GET.get('orden', 'nombre')
+
+
+    # Filtrar productos
+    if search_query:
+        productos = productos.filter(nombre__icontains=search_query)
+    
+    if marca_id:
+        productos = productos.filter(marca_id=marca_id)
+
+    if categoria_id:
+        productos = productos.filter(categoria_id=categoria_id)
+
+    # Ordenar productos
+    if orden == 'nombre_desc':
+        productos = productos.order_by('-nombre')
+    elif orden == 'precio_asc':
+        productos = productos.order_by('precio')
+    elif orden == 'precio_desc':
+        productos = productos.order_by('-precio')
+    else:
+        productos = productos.order_by('nombre')
+    
+    context = {
+        'productos': productos,
+        'categorias': categorias,
+        'selected_categoria': (categoria_id),
+        'marcas': marcas,
+        'selected_marca': (marca_id),
+        'search_query': search_query,
+        'marca_id': marca_id,
+        'categoria_id': categoria_id,
+        'orden': orden
+    }
+
+    return render(request, 'CestaMagica/productos.html', context)
 
 def retroceder(request):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
