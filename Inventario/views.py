@@ -17,7 +17,7 @@ def productos(request):
     marcas = Marca.objects.all()
 
     search_query = request.GET.get('search', '')
-    marca_id = request.GET.get('marca', '')
+    marca = request.GET.get('marca', '') 
     categoria_id = request.GET.get('categoria', '')
     orden = request.GET.get('orden', 'nombre')
 
@@ -26,8 +26,8 @@ def productos(request):
     if search_query:
         productos = productos.filter(nombre__icontains=search_query)
     
-    if marca_id:
-        productos = productos.filter(marca_id=marca_id)
+    if marca:
+        productos = productos.filter(marca__nombre__icontains=marca) 
 
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
@@ -45,11 +45,11 @@ def productos(request):
     context = {
         'productos': productos,
         'categorias': categorias,
-        'selected_categoria': (categoria_id),
+        'selected_categoria': categoria_id,
         'marcas': marcas,
-        'selected_marca': (marca_id),
+        'selected_marca': marca,
         'search_query': search_query,
-        'marca_id': marca_id,
+        'marca': marca, 
         'categoria_id': categoria_id,
         'orden': orden
     }
@@ -89,6 +89,16 @@ def gestion(request):
     return render(request, 'CestaMagica/Gestion/gestion.html', context)
 
 def contacto(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        email = request.POST.get('email')
+        mensaje = request.POST.get('mensaje')
+
+        print(nombre, email, mensaje)
+
+        messages.success(request, 'Mensaje enviado correctamente')
+        return redirect('contacto')
+
     return render(request, 'CestaMagica/contacto.html')
 
 @login_required

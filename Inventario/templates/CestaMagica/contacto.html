@@ -4,8 +4,77 @@
 <title>Cesta Mágica | Contacto</title>
 {% endblock %}
 
+{% block css %}
+<style>
+  :root {
+    --color-yellow-light: #f6eca9;
+    --color-green-dark: #477c3b;
+    --color-pink-bright: #cc479a;
+    --color-blue-light: #6bbfdf;
+    --color-brown-light: #c38855;
+    --color-red-dark: #bd403a;
+  }
+
+  body {
+    background-color: var(--color-yellow-light);
+  }
+
+  h1, h3 {
+    color: var(--color-pink-bright);
+  }
+
+  .text-primary {
+    color: var(--color-green-dark) !important;
+  }
+
+  .btn-primary {
+    background-color: var(--color-blue-light);
+    border-color: var(--color-blue-light);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-green-dark);
+    border-color: var(--color-green-dark);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-brown-light);
+    border-color: var(--color-brown-light);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-red-dark);
+    border-color: var(--color-red-dark);
+  }
+
+  .form-label {
+    font-weight: bold;
+    color: var(--color-pink-bright);
+  }
+
+  .form-control {
+    border: 1px solid var(--color-blue-light);
+  }
+
+  .form-control:focus {
+    border-color: var(--color-pink-bright);
+    box-shadow: 0 0 0 0.2rem rgba(204, 71, 154, 0.25);
+  }
+
+  .container h1 {
+    border-bottom: 2px solid var(--color-blue-light);
+    display: inline-block;
+    padding-bottom: 5px;
+  }
+
+  ul.list-unstyled li {
+    font-size: 1.1rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-5 mb-5">
   <h1 class="text-center mb-4">Contáctanos</h1>
   <div class="row">
     <!-- Información de contacto -->

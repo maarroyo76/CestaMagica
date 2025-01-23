@@ -2,9 +2,18 @@
 
 {% block css %}
 <style>
+  :root {
+    --color-yellow-light: #f6eca9;
+    --color-green-dark: #477c3b;
+    --color-pink-bright: #cc479a;
+    --color-blue-light: #6bbfdf;
+    --color-brown-light: #c38855;
+    --color-red-dark: #bd403a;
+  }
+
   .card {
     padding: 15px;
-    border-color: #dedede;
+    border-color: var(--color-brown-light);
   }
 
   .card img {
@@ -14,7 +23,7 @@
   }
 
   .price {
-    color: #28a745;
+    color: var(--color-green-dark);
     font-weight: bold;
   }
 
@@ -27,6 +36,16 @@
 
   .card-text {
     font-size: 1.1rem;
+  }
+
+  .btn-outline-secondary {
+    color: var(--color-red-dark);
+    border-color: var(--color-red-dark);
+  }
+
+  .btn-outline-secondary:hover {
+    background-color: var(--color-red-dark);
+    color: white;
   }
 </style>
 {% endblock css %}
@@ -52,8 +71,8 @@
             <div class="card shadow-lg mb-3" style="min-height: 50%;">
                 <div class="card-body">
                     <div>
-                        <h2 class="card-title mb-3">{{ producto.nombre }}</h2>
-                        <h4 class="text-success mb-3">
+                        <h2 class="card-title mb-3" style="color: var(--color-pink-bright);">{{ producto.nombre }}</h2>
+                        <h4 class="mb-3">
                             <strong class="price" data-raw-price="{{ producto.precio }}">Precio: ${{ producto.precio }}</strong>
                         </h4>
                     </div>
@@ -63,7 +82,7 @@
                             {{ producto.descripcion }}
                         </p>
                         <p class="card-text mt-1">
-                            <small class="text-success">Stock Disponible: {{ producto.stock }}</small>
+                            <small style="color: var(--color-blue-light);">Stock Disponible: {{ producto.stock }}</small>
                         </p>
                     </div>
                 </div>

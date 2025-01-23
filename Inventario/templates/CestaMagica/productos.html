@@ -6,6 +6,15 @@
 
 {% block css %}
 <style>
+  :root {
+    --color-yellow-light: #f6eca9;
+    --color-green-dark: #477c3b;
+    --color-pink-bright: #cc479a;
+    --color-blue-light: #6bbfdf;
+    --color-brown-light: #c38855;
+    --color-red-dark: #bd403a;
+  }
+
   .card-img-container {
     height: 200px;
     display: flex;
@@ -24,6 +33,16 @@
     font-size: 0.9rem;
   }
 
+  .card {
+    border: 1px solid var(--color-brown-light);
+  }
+
+  .card:hover {
+    box-shadow: 0 0 10px var(--color-blue-light);
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+  }
+
   /* Estilo para enlaces dentro de las tarjetas */
   .card a {
     color: inherit;
@@ -31,8 +50,47 @@
   }
 
   .card a:hover {
-    color: inherit;
+    color: var(--color-pink-bright);
     text-decoration: none;
+  }
+
+  .btn-success {
+    background-color: var(--color-green-dark);
+    border-color: var(--color-green-dark);
+  }
+
+  .btn-success:hover {
+    background-color: var(--color-pink-bright);
+    border-color: var(--color-pink-bright);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-blue-light);
+    border-color: var(--color-blue-light);
+    color: var(--color-yellow-light);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-green-dark);
+    border-color: var(--color-green-dark);
+    color: var(--color-yellow-light);
+  }
+
+  .form-control {
+    border-color: var(--color-brown-light);
+  }
+
+  .form-control:focus {
+    border-color: var(--color-blue-light);
+    box-shadow: 0 0 0 0.2rem rgba(107, 191, 223, 0.25);
+  }
+
+  h1 {
+    color: var(--color-green-dark);
+  }
+
+  .text-primary {
+    color: var(--color-red-dark) !important;
   }
 </style>
 {% endblock %}
@@ -82,7 +140,7 @@
     {% if productos %}
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
         {% for producto in productos %}
-        <div class="col">
+        <div class="col mb-3 mt-4">
             <div class="card h-100">
                 <a href="{% url 'detalle_producto' producto.id %}" class="stretched-link text-decoration-none">
                     <div class="card-img-container">
