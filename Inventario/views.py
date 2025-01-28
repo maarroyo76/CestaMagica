@@ -182,6 +182,7 @@ def eliminar_producto(request, id):
 
 def detalle_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
+    print(producto.imagen.url)
     return render(request, 'CestaMagica/detalle.html', {'producto': producto})
 
 def inicio_sesion(request):
