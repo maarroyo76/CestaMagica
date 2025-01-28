@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', default="django-insecure-3w*pf0spjpmf*pm($bh#3ugita25+bb4sd9q+ea%j-%+qf*ko6")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', default=True)
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = []
 
@@ -107,6 +107,7 @@ else:
         os.path.join(BASE_DIR, 'static')
     ]
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Añadido por precaución
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
