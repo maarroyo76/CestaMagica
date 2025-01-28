@@ -29,7 +29,9 @@ def productos(request):
         productos = productos.filter(nombre__icontains=search_query)
     
     if marca:
-        productos = productos.filter(marca__nombre__icontains=marca) 
+        productos = productos.filter(marca__nombre__icontains=marca)
+    else:
+        productos = productos.filter(marca_id=marca)
 
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
