@@ -14,7 +14,9 @@ def home(request):
 def productos(request):
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
+    categorias = categorias.order_by('nombre')
     marcas = Marca.objects.all()
+    marcas = marcas.order_by('nombre')
 
     search_query = request.GET.get('search', '')
     marca = request.GET.get('marca', '') 
@@ -64,7 +66,9 @@ def retroceder(request):
 def gestion(request):
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
+    categorias = categorias.order_by('nombre')
     marcas = Marca.objects.all()
+    marcas = marcas.order_by('nombre')
     
     search_query = request.GET.get('search', '')
     marca_id = request.GET.get('marca', '')
