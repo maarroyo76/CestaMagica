@@ -116,7 +116,7 @@
         <select name="marca" class="form-select">
           <option value="">Filtrar por marca</option>
           {% for marca in marcas %}
-            <option value="{{ marca.id }}" {% if marca.id|stringformat:"s" == selected_marca %}selected{% endif %}>
+            <option value="{{ marca.nombre }}" {% if marca.nombre == selected_marca %}selected{% endif %}>
               {{ marca.nombre }}
             </option>
           {% endfor %}
