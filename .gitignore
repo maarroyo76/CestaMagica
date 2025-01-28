@@ -1,0 +1,26 @@
+# Evita subir configuraciones del entorno virtual
+venv/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# Base de datos local
+db.sqlite3
+
+# Archivos de logs
+*.log
+logs/
+
+# Configuraciones sensibles
+.env
+*.pem
+secrets.json
+
+# Archivos estáticos y de medios generados
+media/
+
+# Configuración específica para Render/AWS
+.DS_Store
+.idea/
+.vscode/
