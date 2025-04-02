@@ -15,14 +15,14 @@
 
 {% block titulo %}
     <title>Cesta Magica | Gestion</title>
-{% endblock %} 
+{% endblock %}
 
 {% block content %}
 <div class="container mb-3">
   <div class="row justify-content-center mb-3 mt-3">
     <div class="col-12 col-md-8 col-lg-6">
       <div class="d-flex justify-content-between align-items-center">
-        <h3 class="mb-0">Editar Producto: {{producto.nombre}}</h3>
+        <h3 class="mb-0">Editar Producto: {{ producto.nombre }}</h3>
         <a href="{% url 'gestion' %}" class="btn btn-dark">Volver</a>
       </div>
     </div>
@@ -31,11 +31,11 @@
     <div class="col-12 col-md-8 col-lg-6">
       <div class="card">
         <div class="card-body">
-            <form id="form_agregar" action="" method="POST" enctype="multipart/form-data" novalidate>
+            <form id="form_editar" action="" method="POST" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
                 <div class="mb-3">
                     <label for="nombre" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" name="nombre" id="nombre" value="{{producto.nombre}}" required/>
+                    <input type="text" class="form-control" name="nombre" id="nombre" value="{{ producto.nombre }}" required />
                     <div class="invalid-feedback">
                         Por favor, ingresa el nombre del producto.
                     </div>
@@ -45,9 +45,9 @@
                     <select class="form-select" name="marca" id="marca" required>
                         {% for marca in marcas|dictsort:"nombre" %}
                             {% if marca.id == producto.marca.id %}
-                                <option value="{{marca.id}}" selected>{{marca.nombre}}</option>
+                                <option value="{{ marca.id }}" selected>{{ marca.nombre }}</option>
                             {% else %}
-                                <option value="{{marca.id}}">{{marca.nombre}}</option>
+                                <option value="{{ marca.id }}">{{ marca.nombre }}</option>
                             {% endif %}
                         {% endfor %}
                     </select>
@@ -58,42 +58,49 @@
                 <div class="mb-3">
                     <label for="categoria" class="form-label">Categoría</label>
                     <select class="form-select" name="categoria" id="categoria" required>
-                    {% for categoria in categorias|dictsort:"nombre" %}
-                        {% if categoria.id == producto.categoria.id %}
-                            <option value="{{categoria.id}}" selected>{{categoria.nombre}}</option>
-                        {% else %}
-                            <option value="{{categoria.id}}">{{categoria.nombre}}</option>
-                        {% endif %}
-                    {% endfor %}
+                        {% for categoria in categorias|dictsort:"nombre" %}
+                            {% if categoria.id == producto.categoria.id %}
+                                <option value="{{ categoria.id }}" selected>{{ categoria.nombre }}</option>
+                            {% else %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endif %}
+                        {% endfor %}
                     </select>
                     <div class="invalid-feedback">
                         Por favor, selecciona una categoría.
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="precio" class="form-label">Precio</label>
-                    <input type="number" class="form-control" name="precio" id="precio" min="0" step="0.01" value="{{producto.precio}}" required />
-                    <div class="invalid-feedback">
-                        Por favor, ingresa un precio válido.
-                    </div>
-                </div>
-                <div class="mb-3">
                     <label for="stock" class="form-label">Stock</label>
-                    <input type="number" class="form-control" name="stock" id="stock" min="0" value="{{producto.stock}}" required />
+                    <input type="number" class="form-control" name="stock" id="stock" min="0" value="{{ producto.stock }}" required />
                     <div class="invalid-feedback">
                         Por favor, ingresa la cantidad de stock.
                     </div>
                 </div>
                 <div class="mb-3">
                     <label for="descripcion" class="form-label">Descripción</label>
-                    <textarea class="form-control" name="descripcion" id="descripcion" rows="2" required>{{producto.descripcion}}</textarea>
+                    <textarea class="form-control" name="descripcion" id="descripcion" rows="2" required>{{ producto.descripcion }}</textarea>
                     <div class="invalid-feedback">
                         Por favor, agrega una descripción para el producto.
                     </div>
                 </div>
                 <div class="mb-3">
+                    <label class="form-label">Precios por unidad de venta</label>
+                    {% for unidad in unidades_venta %}
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">{{ unidad.nombre }}</span>
+                        <input type="number" step="0.01" class="form-control" name="precio_{{ unidad.id }}" 
+                            placeholder="Precio para {{ unidad.nombre }}" 
+                            value="{% for precio in precios %}{% if precio.unidad_venta.id == unidad.id %}{{ precio.precio }}{% endif %}{% endfor %}" required>
+                        <div class="invalid-feedback">
+                            Por favor, ingresa un precio válido para {{ unidad.nombre }}.
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
                     <label for="imagen" class="form-label">Imagen del producto</label>
-                    <input class="form-control" type="file" name="imagen" id="imagen" accept="image/*"/>
+                    <input class="form-control" type="file" name="imagen" id="imagen" accept="image/*" />
                     <div class="invalid-feedback">
                         Por favor, selecciona una imagen para el producto.
                     </div>
@@ -107,14 +114,12 @@
     </div>
   </div>
 </div>
-
-
 {% endblock %}
 
 {% block js %}
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const form = document.getElementById("form_agregar");
+        const form = document.getElementById("form_editar");
 
         form.addEventListener("submit", (event) => {
             if (!form.checkValidity()) {
@@ -125,6 +130,5 @@
             form.classList.add("was-validated");
         });
     });
-
 </script>
 {% endblock %}

@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 {% load static %}
 
@@ -107,15 +106,17 @@ h2 {
 }
 
 .carousel {
+    height: 40%;
     position: relative;
     margin-top: 30px;
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    
 }
 
 .carousel-inner {
-    height: 500px;
+    height: 100%;
     display: flex;
     align-items: center;
 }
@@ -156,7 +157,6 @@ h2 {
   <p>Encuentra los mejores productos a precios increíbles.</p>
 </div>
 
-
 <div class="container">
   <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-inner">
@@ -172,7 +172,7 @@ h2 {
       </div>
       <div class="carousel-item">
         <a href="{% url 'productos' %}?marca=CCU">
-          <img src="{% static 'images/CCU-banner.jpg' %}" class="d-block w-100" alt="Banner CCU">
+          <img src="{% static 'images/CCU-banner.jpg' %}" class="d-block w-100 h-100" alt="Banner CCU">
         </a>
       </div>
       <div class="carousel-item">
@@ -197,7 +197,6 @@ h2 {
   </div>
 </div>
 
-
 <div class="container mt-5">
   <!-- Productos destacados -->
   <h2 class="text-center mb-4">Productos Destacados</h2>
@@ -211,7 +210,11 @@ h2 {
         <div class="card-body">
           <h5 class="card-title text-truncate">{{ producto.nombre }}</h5>
           <p class="card-text text-truncate">{{ producto.descripcion|truncatechars:50 }}</p>
-          <p class="card-text text-primary"><strong>${{ producto.precio }}</strong></p>
+          <p class="card-text text-primary">
+            <strong class="price" data-raw-price="{{ producto.precios.first.precio }}">
+                {{ producto.precios.first.unidad_venta.nombre }}: ${{ producto.precios.first.precio }}
+            </strong>
+          </p>
           <a href="{% url 'detalle_producto' producto.id %}" class="btn btn-outline-success">Ver Más</a>
         </div>
       </div>
