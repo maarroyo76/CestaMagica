@@ -1,0 +1,115 @@
+{% extends "base.html"%}
+
+{% block titulo %}
+    <title>Cesta Magica | Registro</title>
+{% endblock  %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-4 mt-5">
+            <h1 class="text-center mb-4">
+                Crear Cuenta
+            </h1>
+            <div class="card mb-5">
+                <div class="card-body">
+                    <form id="form_registro" method="POST" novalidate>
+                        {% csrf_token %}
+                        {% if error %}
+                            <small class="text-danger">{{ error }}</small>
+                        {% endif %}
+                        <div class="mb-3">
+                            <label for="user" class="form-label">Usuario</label>
+                            <input type="text" class="form-control" name="user" id="user" placeholder="Ingresa un Nombre de Usuario" required />
+                            <div class="invalid-feedback">
+                                Por favor, ingresa un usuario válido.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Ingresa tu Nombre" required />
+                            <div class="invalid-feedback">
+                                Por favor, ingresa un nombre válido.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="apellido" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" name="apellido" id="apellido" placeholder="Ingresa tu Apellido" required />
+                            <div class="invalid-feedback">
+                                Por favor, ingresa un apellido válido.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Correo</label>
+                            <input type="email" class="form-control" name="email" id="email" placeholder="Ingresa tu Correo" required />
+                            <div class="invalid-feedback">
+                                Por favor, ingresa un correo válido.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="telefono" class="form-label">Número telefónico</label>
+                            <div class="input-group">
+                                <span class="input-group-text">+56 9</span>
+                                <input type="tel" class="form-control" name="telefono" id="telefono" required 
+                                    pattern="\d{8}" placeholder="XXXXXXXX" />
+                                <div class="invalid-feedback">
+                                    Por favor, ingresa un número válido con 8 dígitos.
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="mb-3">
+                            <label for="pass" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" name="pass" id="pass" placeholder="Ingresa tu Contraseña" required />
+                            <div class="invalid-feedback">
+                                Por favor, ingresa una contraseña válida.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_pass" class="form-label">Confirmar Contraseña</label>
+                            <input type="password" class="form-control" name="confirm_pass" id="confirm_pass" placeholder="Confirma tu Contraseña" required />
+                            <div class="invalid-feedback">
+                                Por favor, confirma tu contraseña.
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button class="btn btn-primary" type="submit">Registrarse</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("form_registro");
+        const pass = document.getElementById("pass");
+        const confirm_pass = document.getElementById("confirm_pass");
+
+        form.addEventListener("submit", (event) => {
+            checkPassword();
+
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            form.classList.add("was-validated");
+        });
+
+        confirm_pass.addEventListener("input", checkPassword);
+
+        function checkPassword() {
+            if (pass.value !== confirm_pass.value) {
+                confirm_pass.setCustomValidity("Las contraseñas no coinciden");
+            } else {
+                confirm_pass.setCustomValidity("");
+            }
+        }
+    });
+</script>
+{% endblock %}

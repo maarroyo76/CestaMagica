@@ -51,7 +51,7 @@
 {% endblock css %}
 
 {% block titulo %}
-  <title>Cesta Magica | {{producto.nombre}}</title>
+  <title>Cesta Magica | {{ producto.nombre }}</title>
 {% endblock %}
 
 {% block content %}
@@ -73,7 +73,17 @@
                     <div>
                         <h2 class="card-title mb-3" style="color: var(--color-pink-bright);">{{ producto.nombre }}</h2>
                         <h4 class="mb-3">
-                            <strong class="price" data-raw-price="{{ producto.precio }}">Precio: ${{ producto.precio }}</strong>
+                            <strong class="price">Precios:</strong>
+                            <ul class="list-unstyled">
+                                {% for precio in producto.precios.all %}
+                                <li>
+                                    {{ precio.unidad_venta.nombre }}: 
+                                    <span class="price" data-raw-price="{{ precio.precio }}">
+                                        ${{ precio.precio }}
+                                    </span>
+                                </li>
+                                {% endfor %}
+                            </ul>
                         </h4>
                     </div>
                     

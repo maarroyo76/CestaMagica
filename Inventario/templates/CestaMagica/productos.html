@@ -136,7 +136,6 @@
       </div>
     </form>
 
-
     {% if productos %}
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
         {% for producto in productos %}
@@ -154,7 +153,9 @@
                             {{ producto.descripcion|truncatechars:50 }}
                         </p>
                         <p class="card-text text-primary">
-                            <strong class="price" data-raw-price="{{ producto.precio }}">{{ producto.precio }}</strong>
+                            <strong class="price" data-raw-price="{{ producto.precios.first.precio }}">
+                                {{ producto.precios.first.unidad_venta.nombre }}: ${{ producto.precios.first.precio }}
+                            </strong>
                         </p>
                     </div>
                 </a>
@@ -167,7 +168,6 @@
     {% endif %}
 </div>
 {% endblock %}
-
 
 {% block js %}
 <script>

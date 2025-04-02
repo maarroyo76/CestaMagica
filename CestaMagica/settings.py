@@ -1,14 +1,13 @@
 import os
 from pathlib import Path
-import dj_database_url
-import logging
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', default="django-insecure-3w*pf0spjpmf*pm($bh#3ugita25+bb4sd9q+ea%j-%+qf*ko6")
+SECRET_KEY = "django-insecure-3w*pf0spjpmf*pm($bh#3ugita25+bb4sd9q+ea%j-%+qf*ko6"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = 'RENDER' not in os.environ
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -62,20 +61,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'CestaMagica.wsgi.application'
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:postgres@localhost:5432/mysite',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 AUTH_PASSWORD_VALIDATORS = [
+
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
@@ -129,3 +123,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/"
 
 LOGIN_URL = '/login/'
+
+
+ROLES = [
+    ('admin', 'Administrador'),
+    ('cliente', 'Cliente'),
+    ('staff', 'Personal'),
+]
