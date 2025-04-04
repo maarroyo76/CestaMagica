@@ -99,6 +99,17 @@
                     {% endfor %}
                 </div>
                 <div class="mb-3">
+                    <label class="form-label d-flex align-items-center">
+                        <span class="me-2">Producto Destacado</span>
+                            <i class="bi bi-info-circle text-primary" data-bs-toggle="tooltip" 
+                                title="Los productos destacados aparecen en la página principal y en la sección de ofertas."></i>
+                    </label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="isDestacado" name="is_destacado">
+                        <label class="form-check-label" for="isDestacado">Marcar como destacado</label>
+                    </div>
+                </div>
+                <div class="mb-3">
                     <label for="imagen" class="form-label">Imagen del producto</label>
                     <input class="form-control" type="file" name="imagen" id="imagen" accept="image/*" />
                     <div class="invalid-feedback">
@@ -119,6 +130,9 @@
 {% block js %}
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        [...tooltipTriggerList].forEach(el => new bootstrap.Tooltip(el));
+        
         const form = document.getElementById("form_editar");
 
         form.addEventListener("submit", (event) => {

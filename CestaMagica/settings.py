@@ -27,6 +27,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Inventario',
     'storages',
+    'Rest_API',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -67,6 +70,11 @@ DATABASES = {
     }
 }
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication'
+    ]
+}
 
 AUTH_PASSWORD_VALIDATORS = [
 

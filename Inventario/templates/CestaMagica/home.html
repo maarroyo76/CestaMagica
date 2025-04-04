@@ -212,7 +212,6 @@ h2 {
           <p class="card-text text-truncate">{{ producto.descripcion|truncatechars:50 }}</p>
           <p class="card-text text-primary">
             <strong class="price" data-raw-price="{{ producto.precios.first.precio }}">
-                {{ producto.precios.first.unidad_venta.nombre }}: ${{ producto.precios.first.precio }}
             </strong>
           </p>
           <a href="{% url 'detalle_producto' producto.id %}" class="btn btn-outline-success">Ver Más</a>
@@ -255,9 +254,9 @@ h2 {
 {% block js %}
 <script>
   window.onload = function() {
-    const priceElements = document.querySelectorAll('.text-primary strong');
+    const priceElements = document.querySelectorAll('.price');
     priceElements.forEach(function(element) {
-      const price = parseFloat(element.textContent.replace(/[^0-9.-]+/g, ""));
+      const price = parseFloat(element.getAttribute('data-raw-price'));
       if (!isNaN(price)) {
         element.textContent = price.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
       }

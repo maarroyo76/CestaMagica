@@ -19,7 +19,7 @@
                             <small class="text-danger">{{ error }}</small>
                         {% endif %}
                         <div class="mb-3">
-                            <label for="nombre" class="form-label">Usuario</label>
+                            <label for="nombre" class="form-label">Nombre de Usuario</label>
                             <input type="text" class="form-control" name="user" id="user" required />
                             <div class="invalid-feedback">
                                 Por favor, ingresa un usuario valido.
@@ -31,6 +31,9 @@
                             <div class="invalid-feedback">
                                 Por favor, ingresa una contraseña valida.
                             </div>
+                        </div>
+                        <div class="mb-2">
+                            ¿No tienes cuenta? <a href="{% url 'registro' %}">Registrate</a>
                         </div>
                         <div class="d-grid">
                             <button class="btn btn-primary" type="submit">Iniciar Sesion</button>
