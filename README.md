@@ -50,11 +50,10 @@ Para ejecutar el proyecto en tu entorno local, sigue estos pasos:
 - Explora el catálogo de productos.
 
 ## Estado del Proyecto
-El proyecto está en su fase inicial. Los próximos pasos incluyen:
-- Diseño optimizado de la base de datos.
-- Implementación de vistas para la visualización de productos.
-- Desarrollo del sistema de autenticación y gestión de usuarios.
-
+El proyecto se encuentra en desarrollo activo. Las siguientes implementaciones en curso incluyen:
+- Desarrollo del sistema de pedidos (carrito de compras y vista de pago).
+- Integración con una plataforma de pagos en línea.
+- Gestión de pedidos por parte del equipo administrativo.
 
 ---
 **Contacto:** Si tienes preguntas o sugerencias, no dudes en abrir un issue en el repositorio.
