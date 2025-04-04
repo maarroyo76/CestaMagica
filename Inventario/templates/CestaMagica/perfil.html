@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+<title>Cesta Mágica | Perfil</title>
+{% endblock %}
+
+{% block css %}
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 mt-5">
+            <h1 class="text-center mb-4">Perfil de Usuario</h1>
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="text-center">{{ user.username }}</h4>
+                    <p class="text-center text-muted">{{ user.email }}</p>
+
+                    <hr>
+
+                    <h5>Información Personal</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Nombre:</strong> {{ user.first_name }}</li>
+                        <li class="list-group-item"><strong>Apellido:</strong> {{ user.last_name }}</li>
+                        <li class="list-group-item"><strong>Teléfono:</strong> {{ profile.telefono|default:"eeeee" }}</li>
+                        <li class="list-group-item"><strong>Rol:</strong> {{ profile.role|default:"aaaaaaaa" }}</li>
+                        <li class="list-group-item"><strong>Fecha de registro:</strong> {{ user.date_joined|date:"d/m/Y" }}</li>
+                    </ul>
+
+                    <div class="d-grid gap-2 mt-4">
+                        {% comment %} <a href="{% url 'editar_perfil' %}" class="btn btn-warning">Editar Perfil</a> {% endcomment %}
+                        <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar Sesión</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

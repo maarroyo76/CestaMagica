@@ -7,11 +7,12 @@ urlpatterns = [
     path('gestion/', views.gestion, name='gestion'),
     path('contacto/', views.contacto, name='contacto'),
     path('registro/', views.registro, name='registro'),
-    path('login/', views.inicio_sesion, name='login'),
+    path('iniciar_sesion/', views.inicio_sesion, name='iniciar_sesion'),
     path('logout/', views.cerrar_sesion, name='logout'),
     path('gestion/agregar/', views.agregar_producto, name='agregar_producto'),
     path('gestion/editar/<int:id>/', views.editar_producto, name='editar_producto'),
     path('gestion/eliminar/<int:id>/', views.eliminar_producto, name='eliminar_producto'),
     path('producto/<int:id>/', views.detalle_producto, name='detalle_producto'),
     path('retroceder/', views.retroceder, name='retroceder'),
+    path('perfil/', views.perfil, name='perfil'),
 ]

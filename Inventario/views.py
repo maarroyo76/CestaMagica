@@ -1,18 +1,25 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Producto, Categoria, Marca, UnidadVenta, PrecioProducto, userProfile
 from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
+from .decorators import role_required
 
 # Create your views here.
 
 def home(request):
     productos_destacados = Producto.objects.filter(destacado=True)[:8]
-    return render(request, 'CestaMagica/home.html', {'productos_destacados': productos_destacados})
+    perfil = request.session.get('perfil')
+    context = {
+        'perfil': perfil,
+        'productos_destacados': productos_destacados
+    }
+    return render(request, 'CestaMagica/home.html', context)
 
 def productos(request):
+    perfil = request.session.get('perfil')
     productos = Producto.objects.all()
     categorias = Categoria.objects.all().order_by('nombre')
     marcas = Marca.objects.all().order_by('nombre')
@@ -41,6 +48,7 @@ def productos(request):
         productos = productos.order_by('nombre')
 
     context = {
+        'perfil': perfil,
         'productos': productos,
         'categorias': categorias,
         'selected_categoria': categoria_id,
@@ -58,8 +66,9 @@ def retroceder(request):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 
-@login_required
+@role_required('admin', 'staff')
 def gestion(request):
+    perfil = request.session.get('perfil')
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
     categorias = categorias.order_by('nombre')
@@ -81,6 +90,7 @@ def gestion(request):
     
     
     context = {
+        'perfil': perfil,
         'productos': productos,
         'categorias': categorias,
         'marcas': marcas
@@ -89,6 +99,7 @@ def gestion(request):
     return render(request, 'CestaMagica/Gestion/gestion.html', context)
 
 def contacto(request):
+    
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
         email = request.POST.get('email')
@@ -98,11 +109,16 @@ def contacto(request):
 
         messages.success(request, 'Mensaje enviado correctamente')
         return redirect('contacto')
+    
+    perfil = request.session.get('perfil')
+    context = {
+        'perfil': perfil,
+    }
+    return render(request, 'CestaMagica/contacto.html', context)
 
-    return render(request, 'CestaMagica/contacto.html')
-
-@login_required
+@role_required('admin', 'staff')
 def agregar_producto(request):
+    perfil = request.session.get('perfil')
     if request.method == 'POST':
         categoria_id = request.POST.get('categoria')
         categoria = get_object_or_404(Categoria, id=categoria_id)
@@ -114,13 +130,15 @@ def agregar_producto(request):
         descripcion = request.POST.get('descripcion')
         stock = request.POST.get('stock')
         imagen = request.FILES.get('imagen')
+        isDestacado = request.POST.get('isDestacado') == 'on'
 
         producto = Producto(
             nombre=nombre,
             descripcion=descripcion,
             stock=stock,
             categoria=categoria,
-            marca=marca
+            marca=marca,
+            destacado=isDestacado
         )
         if imagen:
             producto.imagen = imagen
@@ -148,6 +166,7 @@ def agregar_producto(request):
     unidades_venta = UnidadVenta.objects.all()
 
     context = {
+        'perfil': perfil,
         'categorias': categorias,
         'marcas': marcas,
         'unidades_venta': unidades_venta
@@ -155,9 +174,10 @@ def agregar_producto(request):
 
     return render(request, 'CestaMagica/Gestion/agregar.html', context)
 
-@login_required
+@role_required('admin', 'staff')
 def editar_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
+    perfil = request.session.get('perfil')
 
     if request.method == 'POST':
         categoria_id = request.POST.get('categoria')
@@ -199,6 +219,7 @@ def editar_producto(request, id):
     precios = {pp.unidad_venta.id: pp.precio for pp in producto.precios.all()}
 
     context = {
+        'perfil': perfil,
         'producto': producto,
         'categorias': categorias,
         'marcas': marcas,
@@ -208,7 +229,7 @@ def editar_producto(request, id):
 
     return render(request, 'CestaMagica/Gestion/editar.html', context)
 
-@login_required
+@role_required('admin', 'staff')
 def eliminar_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
     producto.delete()
@@ -219,11 +240,13 @@ def eliminar_producto(request, id):
 
 def detalle_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
+    perfil = request.session.get('perfil')
     precios = producto.precios.all() 
 
     context = {
         'producto': producto,
-        'precios': precios
+        'precios': precios,
+        'perfil': perfil
     }
 
     return render(request, 'CestaMagica/detalle.html', context)
@@ -243,7 +266,7 @@ def registro(request):
             messages.error(request, "Las contraseñas no coinciden.")
             return render(request, "registro.html")
 
-        if User.objects.filter(usuario=username).exists():
+        if User.objects.filter(username=username).exists():
             messages.error(request, "El nombre de usuario ya existe.")
             return render(request, "registro.html")
         
@@ -251,18 +274,21 @@ def registro(request):
             messages.error(request, "El correo ya está registrado.")
             return render(request, "registro.html")
         
-        telefono = '+56 9' + telefono.strip()
+        telefono = '+56 9 ' + telefono.strip()
         
-        newUser = userProfile(
+        newUser = User.objects.create_user(
             username=username,
             first_name=nombre,
             last_name=apellido,
             email=email,
+            password=password
+        )
+        user_profile = userProfile(
+            user=newUser,
             telefono=telefono,
             role='cliente',
         )
-        newUser.set_password(password)
-        newUser.save()
+        user_profile.save()
 
         user = authenticate(request, usuario=username, password=password)
         if user:
@@ -279,13 +305,39 @@ def inicio_sesion(request):
         user = authenticate(request, username=username, password=clave)
 
         if user is not None:
+            profile = userProfile.objects.get(user=user)
+            request.session['perfil'] = profile.role
+
             login(request, user)
-            return redirect('gestion')
+            if profile.role == 'admin' or profile.role == 'staff':
+                return redirect('gestion')
+            else:
+                return redirect('home')
         else:
             return render(request, 'CestaMagica/auth/inicio_sesion.html', {'error': 'Usuario o contraseña incorrectos'})
 
     return render(request, 'CestaMagica/auth/inicio_sesion.html')
 
+@role_required('admin', 'staff', 'cliente')
 def cerrar_sesion(request):
     logout(request)
-    return redirect('login')
+    return redirect('home')
+
+
+@role_required('admin', 'staff', 'cliente')
+def perfil(request):
+    user = request.user
+
+    try:
+        profile = userProfile.objects.get(user=user)
+    except userProfile.DoesNotExist:
+        profile = None
+
+    perfil_session = request.session.get('perfil')
+
+    context = {
+        'user': user,
+        'perfil': perfil_session,
+        'profile': profile
+    }
+    return render(request, 'CestaMagica/perfil.html', context)
