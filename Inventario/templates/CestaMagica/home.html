@@ -198,7 +198,6 @@ h2 {
 </div>
 
 <div class="container mt-5">
-  <!-- Productos destacados -->
   <h2 class="text-center mb-4">Productos Destacados</h2>
   <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
     {% for producto in productos_destacados %}
@@ -222,7 +221,6 @@ h2 {
   </div>
 </div>
 
-<!-- Beneficios -->
 <div class="container mt-5">
   <h2 class="text-center mb-4">¿Por qué elegirnos?</h2>
   <div class="row text-center benefits">
@@ -244,7 +242,6 @@ h2 {
   </div>
 </div>
 
-<!-- Llamado a la acción -->
 <div class="container text-center mt-5">
   <h3>¡Empieza a comprar ahora!</h3>
   <a href="{% url 'productos' %}" class="btn btn-success btn-lg mb-4">Ver todos los productos</a>
@@ -252,15 +249,5 @@ h2 {
 {% endblock %}
 
 {% block js %}
-<script>
-  window.onload = function() {
-    const priceElements = document.querySelectorAll('.price');
-    priceElements.forEach(function(element) {
-      const price = parseFloat(element.getAttribute('data-raw-price'));
-      if (!isNaN(price)) {
-        element.textContent = price.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
-      }
-    });
-  };
-</script>
+<script src="{% static 'JS/Precios.js' %}"></script>
 {% endblock %}
