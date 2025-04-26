@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'Rest_API',
     'rest_framework',
     'rest_framework.authtoken',
+    'Cart'
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+                'django.contrib.messages.context_processors.messages',          
             ],
         },
     },
