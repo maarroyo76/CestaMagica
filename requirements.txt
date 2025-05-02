@@ -4,7 +4,6 @@ boto3==1.36.7
 botocore==1.36.7
 Brotli==1.1.0
 cffi==1.17.1
-colorama==0.4.6
 cryptography==44.0.2
 Django==5.1.5
 django-storages==1.14.4

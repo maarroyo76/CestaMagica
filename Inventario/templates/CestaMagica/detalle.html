@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block css %}
 <style>
   :root {
@@ -51,73 +51,83 @@
 {% endblock css %}
 
 {% block titulo %}
-  <title>Cesta Magica | {{ producto.nombre }}</title>
+  <title>Cesta Mágica | {{ producto.nombre }}</title>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-lg border-2">
-                <img 
-                    src="{{ producto.imagen.url }}" 
-                    class="img-fluid rounded" 
-                    alt="{{ producto.nombre }}" 
-                />
-            </div>
-        </div>
-
-        <div class="col-md-5">
-            <div class="card shadow-lg mb-3" style="min-height: 50%;">
-                <div class="card-body">
-                    <div>
-                        <h2 class="card-title mb-3" style="color: var(--color-pink-bright);">{{ producto.nombre }}</h2>
-                        <h4 class="mb-3">
-                            <strong class="price">Precios:</strong>
-                            <ul class="list-unstyled">
-                                {% for precio in producto.precios.all %}
-                                <li>
-                                    {{ precio.unidad_venta.nombre }}: 
-                                    <span class="price" data-raw-price="{{ precio.precio }}">
-                                        ${{ precio.precio }}
-                                    </span>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </h4>
-                    </div>
-                    
-                    <div>
-                        <p class="card-text text-muted mb-1">
-                            {{ producto.descripcion }}
-                        </p>
-                        <p class="card-text mt-1">
-                            <small style="color: var(--color-blue-light);">Stock Disponible: {{ producto.stock }}</small>
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="d-grid gap-2 mb-3">
-                <a href="{% url 'productos' %}" class="btn btn-outline-secondary">
-                    Volver a Productos
-                </a>
-            </div>
-        </div>
+  <div class="row justify-content-center">
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-lg border-2">
+        <img 
+          src="{{ producto.imagen.url }}" 
+          class="img-fluid rounded" 
+          alt="{{ producto.nombre }}" 
+        />
+      </div>
     </div>
+
+    <div class="col-md-5">
+      <div class="card shadow-lg mb-3">
+        <div class="card-body">
+          <h2 class="card-title mb-3">{{ producto.nombre }}</h2>
+
+          <h4 class="mb-3">
+            <strong class="price">Precio:</strong>
+          </h4>
+          <h6 class="mb-3">
+            <strong class="price">$ {{producto.precio}}</strong>
+          </h6>
+
+          <p class="card-text text-muted mb-1">{{ producto.descripcion }}</p>
+          <p class="card-text mt-1">
+            <small style="color: var(--color-blue-light);">Stock Disponible: {{ producto.stock }}</small>
+          </p>
+        </div>
+      </div>
+
+      <!-- Botón para agregar al carrito usando AJAX -->
+      <button class="btn btn-outline-primary w-100 mb-2" id="add-to-cart-btn" data-product-id="{{ producto.id }}">
+        Agregar al carrito
+      </button>
+
+      <a href="{% url 'productos' %}" class="btn btn-outline-secondary w-100">
+        Volver a Productos
+      </a>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
-  window.onload = function() {
-    const priceElements = document.querySelectorAll('.price');
-    Array.prototype.forEach.call(priceElements, function(element) {
-      const price = parseFloat(element.getAttribute('data-raw-price'));
-      if (!isNaN(price)) {
-        element.textContent = price.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
+  // AJAX para manejar agregar al carrito
+  $("#add-to-cart-btn").click(function(event) {
+    event.preventDefault();
+    
+    var productId = $(this).data("product-id");
+    
+    // Realizar solicitud AJAX para agregar el producto al carrito
+    $.ajax({
+      url: "{% url 'cart:add_to_cart' 0 %}".replace("0", productId),  // Reemplaza la URL con el ID del producto
+      type: "POST",
+      data: {
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function(response) {
+        // Actualizar el carrito y el total con los nuevos datos
+        alert("Producto agregado al carrito!");
+        console.log(response);  // Para comprobar la respuesta (se puede eliminar después)
+
+        // Si quieres actualizar el contenido del carrito en la página (por ejemplo, el número de productos)
+        // actualizarCarrito(response);
+      },
+      error: function(xhr, errmsg, err) {
+        alert("Hubo un error al agregar el producto al carrito.");
       }
     });
-  }
+  });
 </script>
 {% endblock js %}

@@ -24,12 +24,14 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.humanize',
     'django.contrib.staticfiles',
     'Inventario',
     'storages',
     'Rest_API',
     'rest_framework',
     'rest_framework.authtoken',
+    'Cart'
 ]
 
 MIDDLEWARE = [
@@ -55,7 +57,7 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+                'django.contrib.messages.context_processors.messages',          
             ],
         },
     },
@@ -63,12 +65,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'CestaMagica.wsgi.application'
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'railway',
+        'USER': 'root',
+        'PASSWORD': 'QYWazMeWuyhOZsUlqFlbcpMdLHdpMQEY',
+        'HOST': 'switchyard.proxy.rlwy.net',
+        'PORT': '54052'
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

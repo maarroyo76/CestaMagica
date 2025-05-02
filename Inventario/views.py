@@ -1,12 +1,12 @@
 from django.shortcuts import get_object_or_404, redirect, render
-from .models import Producto, Categoria, Marca, UnidadVenta, PrecioProducto, userProfile
+from .models import Producto, Categoria, Marca, userProfile
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from .decorators import role_required
-
+from Cart.views import cart_detail
 # Create your views here.
 
 def home(request):
@@ -129,6 +129,7 @@ def agregar_producto(request):
         nombre = request.POST.get('nombre')
         descripcion = request.POST.get('descripcion')
         stock = request.POST.get('stock')
+        precio = request.POST.get('precio')
         imagen = request.FILES.get('imagen')
         isDestacado = request.POST.get('isDestacado') == 'on'
 
@@ -136,6 +137,7 @@ def agregar_producto(request):
             nombre=nombre,
             descripcion=descripcion,
             stock=stock,
+            precio=precio,
             categoria=categoria,
             marca=marca,
             destacado=isDestacado
@@ -144,18 +146,6 @@ def agregar_producto(request):
             producto.imagen = imagen
         producto.save()
 
-        unidades_venta = UnidadVenta.objects.all()
-        for unidad in unidades_venta:
-            precio_key = f"precio_{unidad.id}"
-            if precio_key in request.POST:
-                precio = request.POST.get(precio_key)
-                if precio:
-                    PrecioProducto.objects.create(
-                        producto=producto,
-                        unidad_venta=unidad,
-                        precio=precio
-                    )
-
         messages.success(request, 'Producto agregado correctamente')
         return redirect('gestion')
 
@@ -163,13 +153,11 @@ def agregar_producto(request):
     categorias = categorias.order_by('nombre')
     marcas = Marca.objects.all()
     marcas = marcas.order_by('nombre')
-    unidades_venta = UnidadVenta.objects.all()
 
     context = {
         'perfil': perfil,
         'categorias': categorias,
-        'marcas': marcas,
-        'unidades_venta': unidades_venta
+        'marcas': marca
     }
 
     return render(request, 'CestaMagica/Gestion/agregar.html', context)
@@ -189,42 +177,24 @@ def editar_producto(request, id):
         producto.nombre = request.POST.get('nombre')
         producto.descripcion = request.POST.get('descripcion', '')
         producto.stock = request.POST.get('stock')
+        producto.precio = request.POST.get('precio')
         producto.categoria = categoria
         producto.marca = marca
         if request.FILES.get('imagen'):
             producto.imagen = request.FILES.get('imagen')
         producto.save()
 
-        unidades_venta = UnidadVenta.objects.all()
-        for unidad in unidades_venta:
-            precio_key = f"precio_{unidad.id}"
-            if precio_key in request.POST:
-                precio = request.POST.get(precio_key)
-                if precio: 
-                    precio_producto, created = PrecioProducto.objects.get_or_create(
-                        producto=producto,
-                        unidad_venta=unidad,
-                        defaults={'precio': precio}
-                    )
-                    if not created:
-                        precio_producto.precio = precio
-                        precio_producto.save()
-
         messages.success(request, 'Producto editado correctamente')
         return redirect('gestion')
 
     categorias = Categoria.objects.all()
     marcas = Marca.objects.all()
-    unidades_venta = UnidadVenta.objects.all()
-    precios = {pp.unidad_venta.id: pp.precio for pp in producto.precios.all()}
 
     context = {
         'perfil': perfil,
         'producto': producto,
         'categorias': categorias,
-        'marcas': marcas,
-        'unidades_venta': unidades_venta,
-        'precios': precios  
+        'marcas': marcas
     }
 
     return render(request, 'CestaMagica/Gestion/editar.html', context)
@@ -241,11 +211,9 @@ def eliminar_producto(request, id):
 def detalle_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
     perfil = request.session.get('perfil')
-    precios = producto.precios.all() 
 
     context = {
         'producto': producto,
-        'precios': precios,
         'perfil': perfil
     }
 
