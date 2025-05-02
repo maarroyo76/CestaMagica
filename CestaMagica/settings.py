@@ -65,12 +65,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'CestaMagica.wsgi.application'
 
+
+#mysql://root:QYWazMeWuyhOZsUlqFlbcpMdLHdpMQEY@switchyard.proxy.rlwy.net:54052/railway
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'railway',
+        'USER': 'root',
+        'PASSWORD': 'QYWazMeWuyhOZsUlqFlbcpMdLHdpMQEY',
+        'HOST': 'switchyard.proxy.rlwy.net',
+        'PORT': '54052'
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
