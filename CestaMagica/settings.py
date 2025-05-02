@@ -66,8 +66,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'CestaMagica.wsgi.application'
 
 
-#mysql://root:QYWazMeWuyhOZsUlqFlbcpMdLHdpMQEY@switchyard.proxy.rlwy.net:54052/railway
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
