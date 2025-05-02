@@ -210,7 +210,7 @@ h2 {
           <h5 class="card-title text-truncate">{{ producto.nombre }}</h5>
           <p class="card-text text-truncate">{{ producto.descripcion|truncatechars:50 }}</p>
           <p class="card-text text-primary">
-            <strong class="price" data-raw-price="{{ producto.precios.first.precio }}">
+            <strong class="price" data-raw-price="{{ producto.precio }}">
             </strong>
           </p>
           <a href="{% url 'detalle_producto' producto.id %}" class="btn btn-outline-success">Ver Más</a>

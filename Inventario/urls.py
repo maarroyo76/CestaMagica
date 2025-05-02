@@ -1,5 +1,6 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
+from Cart import views as cart_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -15,4 +16,5 @@ urlpatterns = [
     path('producto/<int:id>/', views.detalle_producto, name='detalle_producto'),
     path('retroceder/', views.retroceder, name='retroceder'),
     path('perfil/', views.perfil, name='perfil'),
+    path('carrito/', include(('Cart.urls', 'cart'), namespace='cart')),
 ]

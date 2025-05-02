@@ -40,13 +40,7 @@
               <a class="nav-link" href="{% url 'productos' %}">Productos</a>
             </li>
             <li class="nav-item">
-              <button class="btn position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasCarrito" aria-controls="offcanvasCarrito">
-                <i class="bi bi-bag fs-4"></i>
-                Carrito
-                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="font-size: 0.8rem; padding: 0.4em 0.6em; border-radius: 50%;">
-                  {{ carrito_total_items }}
-                </span>
-              </button>
+              <a class="nav-link" href="{% url 'cart:cart_detail' %}">Carrito</a>
             </li>
             {% if perfil == 'admin' or perfil == 'staff' %}
               <li class="nav-item">
@@ -65,6 +59,7 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block js %}{% endblock %}
   </body>
 </html>
