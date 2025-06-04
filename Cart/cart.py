@@ -1,5 +1,3 @@
-from math import floor
-
 class Cart:
     def __init__(self, request):
         self.session = request.session
@@ -15,6 +13,7 @@ class Cart:
                 "product_id": product.id,
                 "name": product.nombre,
                 "quantity": 1,
+                "description": product.descripcion,
                 "price": float(product.precio),
                 "image": product.imagen.url
             }

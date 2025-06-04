@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block titulo %}<title>Pedido Exitoso</title>{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+  <h2>¡Pago exitoso!</h2>
+  <p>Código del pedido: <strong>{{ pedido.codigo_pedido }}</strong></p>
+  <p>Monto pagado: CLP ${{ pedido.total|floatformat:0|intcomma }}</p>
+  <a href="{% url 'productos' %}" class="btn btn-primary mt-3">Seguir comprando</a>
+</div>
+{% endblock %}

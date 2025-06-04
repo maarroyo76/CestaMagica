@@ -1,6 +1,5 @@
 from django.urls import path, include
 from . import views
-from Cart import views as cart_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -17,4 +16,10 @@ urlpatterns = [
     path('retroceder/', views.retroceder, name='retroceder'),
     path('perfil/', views.perfil, name='perfil'),
     path('carrito/', include(('Cart.urls', 'cart'), namespace='cart')),
+    path('pedido/', include(('pedido.urls', 'pedido'), namespace='pedido')),
 ]
+
+handler404 = views.error_404_view
+handler500 = views.error_500_view
+handler403 = views.error_403_view
+handler400 = views.error_400_view
