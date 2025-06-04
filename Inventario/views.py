@@ -6,8 +6,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from .decorators import role_required
-from Cart.views import cart_detail
-# Create your views here.
+from django.db import transaction
+from pedido.models import Pedido, DetallePedido
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def home(request):
     productos_destacados = Producto.objects.filter(destacado=True)[:8]
@@ -41,15 +43,19 @@ def productos(request):
     if orden == 'nombre_desc':
         productos = productos.order_by('-nombre')
     elif orden == 'precio_asc':
-        productos = productos.order_by('precios__precio')
+        productos = productos.order_by('precio')
     elif orden == 'precio_desc':
-        productos = productos.order_by('-precios__precio')
+        productos = productos.order_by('-precio')
     else:
         productos = productos.order_by('nombre')
 
+    paginator = Paginator(productos, 16)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'perfil': perfil,
-        'productos': productos,
+        'productos': page_obj,
         'categorias': categorias,
         'selected_categoria': categoria_id,
         'marcas': marcas,
@@ -57,7 +63,8 @@ def productos(request):
         'search_query': search_query,
         'marca': marca,
         'categoria_id': categoria_id,
-        'orden': orden
+        'orden': orden,
+        'page_obj': page_obj,
     }
 
     return render(request, 'CestaMagica/productos.html', context)
@@ -157,7 +164,7 @@ def agregar_producto(request):
     context = {
         'perfil': perfil,
         'categorias': categorias,
-        'marcas': marca
+        'marcas': marcas
     }
 
     return render(request, 'CestaMagica/Gestion/agregar.html', context)
@@ -309,3 +316,53 @@ def perfil(request):
         'profile': profile
     }
     return render(request, 'CestaMagica/perfil.html', context)
+
+
+@role_required('admin', 'staff', 'cliente')
+@transaction.atomic
+def finalizar_pedido(request):
+    cart = request.session.get("cart", {})
+    if not cart:
+        messages.error(request, "Tu carrito está vacío.")
+        return redirect("productos")
+
+    total = 0
+    for item in cart.values():
+        total += item["price"] * item["quantity"]
+
+    pedido = Pedido.objects.create(
+        usuario=request.user,
+        total=total,
+        estado="PEND",
+    )
+
+    for item in cart.values():
+        producto = Producto.objects.get(pk=item["product_id"])
+        DetallePedido.objects.create(
+            pedido=pedido,
+            producto=producto,
+            cantidad=item["quantity"],
+            precio_unitario=item["price"],
+            subtotal=item["price"] * item["quantity"]
+        )
+
+    request.session["cart"] = {}
+    request.session.modified = True
+
+    messages.success(request, f"Pedido generado con éxito. Código: {pedido.codigo_pedido}")
+    return redirect("pedido_exito", pedido_id=pedido.pk)
+
+
+@role_required('admin', 'staff', 'cliente')
+def pedido_exito(request, pedido_id):
+    pedido = Pedido.objects.prefetch_related("items__producto").get(pk=pedido_id)
+    return render(request, "pedido_exito.html", {"pedido": pedido})
+
+def error_404_view(request, exception):
+    return render(request, 'CestaMagica/error_404.html', status=404)
+def error_500_view(request):
+    return render(request, 'CestaMagica/error_500.html', status=500)
+def error_403_view(request, exception):
+    return render(request, 'CestaMagica/error_403.html', status=403)
+def error_400_view(request, exception):
+    return render(request, 'CestaMagica/error_400.html', status=400)

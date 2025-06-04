@@ -103,26 +103,18 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-  // AJAX para manejar agregar al carrito
   $("#add-to-cart-btn").click(function(event) {
     event.preventDefault();
     
     var productId = $(this).data("product-id");
-    
-    // Realizar solicitud AJAX para agregar el producto al carrito
     $.ajax({
-      url: "{% url 'cart:add_to_cart' 0 %}".replace("0", productId),  // Reemplaza la URL con el ID del producto
+      url: "{% url 'cart:add_to_cart' 0 %}".replace("0", productId),
       type: "POST",
       data: {
         csrfmiddlewaretoken: '{{ csrf_token }}'
       },
       success: function(response) {
-        // Actualizar el carrito y el total con los nuevos datos
         alert("Producto agregado al carrito!");
-        console.log(response);  // Para comprobar la respuesta (se puede eliminar después)
-
-        // Si quieres actualizar el contenido del carrito en la página (por ejemplo, el número de productos)
-        // actualizarCarrito(response);
       },
       error: function(xhr, errmsg, err) {
         alert("Hubo un error al agregar el producto al carrito.");

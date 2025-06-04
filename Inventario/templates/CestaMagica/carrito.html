@@ -1,9 +1,22 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize cart_extras %}
 {% block titulo %}<title>Carrito de Compras</title>{% endblock %}
 
 {% block css %}
-{# Aquí van estilos específicos si los necesitas #}
+<style>
+  .cart-item {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+  .cart-summary {
+    font-size: 1rem;
+  }
+  .cart-summary .total {
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -16,28 +29,27 @@
         <h4 class="mb-4">Carrito de Compras</h4>
 
         <div id="cart-items">
-          {% if cart %}
+          {% if cart|length > 0 %}
             {% for item in cart %}
-              <div class="d-flex align-items-center mb-3" id="cart-item-{{ item.product_id }}">
+              <div class="d-flex align-items-start cart-item" id="cart-item-{{ item.product_id }}">
                 <img src="{{ item.image }}" class="img-thumbnail me-3" style="width: 80px;">
                 <div class="flex-grow-1">
                   <div class="fw-bold">{{ item.name }}</div>
-                  <small class="text-muted">ID: {{ item.product_id }}</small>
+                  <div class="text-muted small">{{ item.description }}</div>
+                  <div class="d-flex align-items-center mt-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm decrement-btn" data-id="{{ item.product_id }}">
+                      <i class="bi bi-dash"></i>
+                    </button>
+                    <span class="mx-2">{{ item.quantity }}</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm increment-btn" data-id="{{ item.product_id }}">
+                      <i class="bi bi-plus"></i>
+                    </button>
+                  </div>
                 </div>
-
-                <div class="d-flex align-items-center">
-                  <button type="button" class="btn btn-outline-secondary btn-sm decrement-btn" data-id="{{ item.product_id }}">
-                    <i class="bi bi-dash"></i>
-                  </button>
-                  <span class="mx-2">{{ item.quantity }}</span>
-                  <button type="button" class="btn btn-outline-secondary btn-sm increment-btn" data-id="{{ item.product_id }}">
-                    <i class="bi bi-plus"></i>
-                  </button>
-                </div>
-
-                <div class="text-end ms-4">
+                <div class="text-end ms-3">
                   <div>CLP ${{ item.price|floatformat:0|intcomma }}</div>
-                  <button type="button" class="btn btn-sm btn-link text-danger p-0 remove-btn" data-id="{{ item.product_id }}">
+                  <div class="text-muted small">Subtotal: CLP ${{ item.subtotal|floatformat:0|intcomma }}</div>
+                  <button type="button" class="btn btn-sm btn-link text-danger p-0 mt-1 remove-btn" data-id="{{ item.product_id }}">
                     <i class="bi bi-x-lg"></i>
                   </button>
                 </div>
@@ -58,23 +70,30 @@
       <div class="card p-4 bg-white">
         <h5 class="mb-3">Resumen</h5>
 
-        <div id="cart-summary">
-          <div class="d-flex justify-content-between">
-            <span>Items: {{ cart|length }}</span>
-            <span>CLP ${{ total|floatformat:0|intcomma }}</span>
-          </div>
+        <div id="cart-summary" class="cart-summary">
+          <div class="d-grid gap-3">
+            <div class="d-flex justify-content-between fs-5 fw-semibold">
+              <span>Productos</span>
+              <span id="summary-items">{{ cart|length }}</span>
+            </div>
+            <div class="d-flex justify-content-between fs-5 fw-bold">
+              <span>Total</span>
+              <span id="summary-total">CLP ${{ total|floatformat:0|intcomma }}</span>
+            </div>
+          </div>        
         </div>
-
-        <hr>
-        <form action="{% url 'cart:clear_cart' %}" method="post" class="mt-3">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-outline-danger w-100">Vaciar carrito</button>
-        </form>
-
-        <button class="btn btn-dark w-100 mt-3">Finalizar compra</button>
+        <div id="cart-actions" class="mt-3">
+          <form action="{% url 'cart:clear_cart' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger w-100 mb-2">Vaciar carrito</button>
+          </form>
+          <form action="{% url 'pedido:confirmar_pedido' %}" method="post">
+            {% csrf_token %}
+            <button class="btn btn-dark w-100">Finalizar compra</button>
+          </form>
+        </div>
       </div>
     </div>
-
   </div>
 </div>
 {% endblock %}
@@ -82,71 +101,112 @@
 {% block js %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  // Reconstruye el carrito usando la respuesta JSON
+  $(document).ready(function() {
+    $.ajax({
+      url: "{% url 'cart:get_cart_state' %}",  // Debes crear esta vista en Django
+      type: "GET",
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    }).done(updateCart);
+  });
+
+  function showToast(message, type = "success") {
+    const toastId = "toast-" + Math.random().toString(36).substr(2, 5);
+    const toastHtml = `
+      <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    `;
+    const toastContainer = $("#toast-container");
+    toastContainer.append(toastHtml);
+    const toastElement = new bootstrap.Toast(document.getElementById(toastId), { delay: 2000 });
+    toastElement.show();
+  }
+
+  function animateItem(id) {
+    const el = $(`#cart-item-${id}`);
+    el.fadeOut(100).fadeIn(100);
+  }
+
+  <!-- Removed duplicate formatCLP function definition -->
+
   function updateCart(response) {
-    // Items
     let itemsHtml = "";
     response.cart_items.forEach(item => {
       itemsHtml += `
-        <div class="d-flex align-items-center mb-3" id="cart-item-${item.product_id}">
+        <div class="d-flex align-items-start cart-item" id="cart-item-${item.product_id}">
           <img src="${item.image}" class="img-thumbnail me-3" style="width: 80px;">
           <div class="flex-grow-1">
             <div class="fw-bold">${item.name}</div>
-            <small class="text-muted">ID: ${item.product_id}</small>
+            <div class="text-muted small">${item.description}</div>
+            <div class="d-flex align-items-center mt-2">
+              <button type="button" class="btn btn-outline-secondary btn-sm decrement-btn" data-id="${item.product_id}">
+                <i class="bi bi-dash"></i>
+              </button>
+              <span class="mx-2">${item.quantity}</span>
+              <button type="button" class="btn btn-outline-secondary btn-sm increment-btn" data-id="${item.product_id}">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
           </div>
-          <div class="d-flex align-items-center">
-            <button type="button" class="btn btn-outline-secondary btn-sm decrement-btn" data-id="${item.product_id}">
-              <i class="bi bi-dash"></i>
-            </button>
-            <span class="mx-2">${item.quantity}</span>
-            <button type="button" class="btn btn-outline-secondary btn-sm increment-btn" data-id="${item.product_id}">
-              <i class="bi bi-plus"></i>
-            </button>
-          </div>
-          <div class="text-end ms-4">
-            <div>CLP $${item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</div>
-            <button type="button" class="btn btn-sm btn-link text-danger p-0 remove-btn" data-id="${item.product_id}">
+          <div class="text-end ms-3">
+            <div>CLP $${formatCLP(item.price)}</div>
+            <div class="text-muted small">Subtotal: CLP $${formatCLP(item.subtotal)}</div>
+            <button type="button" class="btn btn-sm btn-link text-danger p-0 mt-1 remove-btn" data-id="${item.product_id}">
               <i class="bi bi-x-lg"></i>
             </button>
           </div>
         </div>`;
     });
-    $("#cart-items").html(itemsHtml);
 
-    // Summary
-    const summaryHtml = `
-      <div class="d-flex justify-content-between">
-        <span>Items: ${response.cart_items.length}</span>
-        <span>CLP $${response.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</span>
-      </div>`;
-    $("#cart-summary").html(summaryHtml);
+    $("#cart-items").html(itemsHtml);
+    
+    const totalItems = response.cart_items.reduce((acc, item) => acc + item.quantity, 0);
+    $("#summary-items").text(totalItems);
+    $("#summary-total").text("CLP $" + formatCLP(response.total));
   }
 
-  // Función genérica AJAX
-  function sendCartRequest(url) {
+  function sendCartRequest(url, action, id) {
     return $.ajax({
       url: url,
       type: "POST",
       headers: { "X-Requested-With": "XMLHttpRequest" },
       data: { csrfmiddlewaretoken: "{{ csrf_token }}" }
+    }).done(function(response) {
+      updateCart(response);
+      animateItem(id);
+      showToast(action, "success");
+    }).fail(function() {
+      showToast("Error al procesar la solicitud", "danger");
     });
   }
 
-  // Delegación de eventos
   $(document).on("click", ".increment-btn", function() {
     const id = $(this).data("id");
-    sendCartRequest("{% url 'cart:add_to_cart' 0 %}".replace("0", id))
-      .done(updateCart);
+    const url = "{% url 'cart:add_to_cart' 0 %}".replace("0", id);
+    sendCartRequest(url, "Producto agregado", id);
   });
+
   $(document).on("click", ".decrement-btn", function() {
     const id = $(this).data("id");
-    sendCartRequest("{% url 'cart:decrement_in_cart' 0 %}".replace("0", id))
-      .done(updateCart);
+    const url = "{% url 'cart:decrement_in_cart' 0 %}".replace("0", id);
+    sendCartRequest(url, "Producto removido", id);
   });
+
   $(document).on("click", ".remove-btn", function() {
     const id = $(this).data("id");
-    sendCartRequest("{% url 'cart:remove_from_cart' 0 %}".replace("0", id))
-      .done(updateCart);
+    const url = "{% url 'cart:remove_from_cart' 0 %}".replace("0", id);
+    sendCartRequest(url, "Producto eliminado del carrito", id);
   });
+
+  function formatCLP(number) {
+    return number.toLocaleString("es-CL");
+  }
 </script>
+
+<!-- Toast container -->
+<div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;"></div>
 {% endblock %}
+
