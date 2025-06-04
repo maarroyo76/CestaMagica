@@ -3,7 +3,6 @@ __pycache__/
 *.log
 .env
 secrets.json
-media/
 .DS_Store
 .vscode/
 *.pyc
