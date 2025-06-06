@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from Inventario.models import Producto, Categoria, Marca
 from .serializers import ProductoSerializer, CategoriaSerializer, MarcaSerializer
 
@@ -24,7 +23,7 @@ def lista_productos(request):
         serializer = ProductoSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer=data, status=status.HTTP_201_CREATED)
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         else:
             print("Error", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -67,7 +66,7 @@ def lista_categorias(request):
         serializer = CategoriaSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer=data, status=status.HTTP_201_CREATED)
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         else:
             print("Error", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -100,17 +99,16 @@ def vista_categoria(request, id):
 @api_view(['GET', 'POST'])
 def lista_marcas(request):
     if request.method == 'GET':
-        marcas = Producto.objects.all()
+        marcas = Marca.objects.all()
         serializer = MarcaSerializer(marcas, many=True)
 
         return Response(serializer.data)
-    
     elif request.method == 'POST':
         data = JSONParser().parse(request)
         serializer = MarcaSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer=data, status=status.HTTP_201_CREATED)
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
         else:
             print("Error", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

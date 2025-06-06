@@ -16,10 +16,10 @@ class Marca(models.Model):
 
 class Producto(models.Model):
     nombre = models.CharField(max_length=200)
-    descripcion = models.TextField()
-    stock = models.IntegerField()
+    descripcion = models.TextField(default="")
+    stock = models.IntegerField(default=0)
     precio = models.IntegerField(default=0)
-    imagen = models.ImageField(upload_to='productos/')
+    imagen = models.ImageField(upload_to='productos/', default='productos/default.png')
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     marca = models.ForeignKey(Marca, on_delete=models.CASCADE)
     destacado = models.BooleanField(default=False)
