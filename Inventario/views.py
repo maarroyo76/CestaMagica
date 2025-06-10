@@ -1,37 +1,39 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Producto, Categoria, Marca, userProfile
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from .decorators import role_required
 from django.db import transaction
 from pedido.models import Pedido, DetallePedido
-
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator
 
 def home(request):
+    # Obtiene los productos destacados (máximo 8)
     productos_destacados = Producto.objects.filter(destacado=True)[:8]
     perfil = request.session.get('perfil')
     context = {
         'perfil': perfil,
         'productos_destacados': productos_destacados
     }
+    # Renderiza la página de inicio con los productos destacados
     return render(request, 'CestaMagica/home.html', context)
 
 def productos(request):
+    # Obtiene el perfil del usuario desde la sesión
     perfil = request.session.get('perfil')
+    # Obtiene todos los productos, categorías y marcas ordenadas por nombre
     productos = Producto.objects.all()
     categorias = Categoria.objects.all().order_by('nombre')
     marcas = Marca.objects.all().order_by('nombre')
 
+    # Obtiene los parámetros de búsqueda y filtrado desde la URL
     search_query = request.GET.get('search', '')
     marca = request.GET.get('marca', '')
     categoria_id = request.GET.get('categoria', '')
     orden = request.GET.get('orden', 'nombre')
 
-    # Filtrar productos
+    # Filtra los productos por nombre, marca y categoría si corresponde
     if search_query:
         productos = productos.filter(nombre__icontains=search_query)
     if marca:
@@ -39,7 +41,7 @@ def productos(request):
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
 
-    # Ordenar productos
+    # Ordena los productos según el parámetro recibido
     if orden == 'nombre_desc':
         productos = productos.order_by('-nombre')
     elif orden == 'precio_asc':
@@ -49,6 +51,7 @@ def productos(request):
     else:
         productos = productos.order_by('nombre')
 
+    # Paginación: muestra 16 productos por página
     paginator = Paginator(productos, 16)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -67,11 +70,8 @@ def productos(request):
         'page_obj': page_obj,
     }
 
+    # Renderiza la página de productos con los filtros y la paginación aplicados
     return render(request, 'CestaMagica/productos.html', context)
-
-def retroceder(request):
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-
 
 @role_required('admin', 'staff')
 def gestion(request):
@@ -152,6 +152,7 @@ def agregar_producto(request):
         if imagen:
             producto.imagen = imagen
         producto.save()
+        producto.refresh_from_db()
 
         messages.success(request, 'Producto agregado correctamente')
         return redirect('gestion')
@@ -359,10 +360,29 @@ def pedido_exito(request, pedido_id):
     return render(request, "pedido_exito.html", {"pedido": pedido})
 
 def error_404_view(request, exception):
-    return render(request, 'CestaMagica/error_404.html', status=404)
+    perfil = request.session.get('perfil')
+    context = {
+        'perfil': perfil,
+    }
+    return render(request, 'CestaMagica/404.html', status=404, context=context)
+
 def error_500_view(request):
-    return render(request, 'CestaMagica/error_500.html', status=500)
+    perfil = request.session.get('perfil')
+    context = {
+        'perfil': perfil,
+    }
+    return render(request, 'CestaMagica/500.html', status=500, context=context)
+
 def error_403_view(request, exception):
-    return render(request, 'CestaMagica/error_403.html', status=403)
+    perfil = request.session.get('perfil')
+    context = {
+        'perfil': perfil,
+    }
+    return render(request, 'CestaMagica/403.html', status=403, context=context)
+
 def error_400_view(request, exception):
-    return render(request, 'CestaMagica/error_400.html', status=400)
+    perfil = request.session.get('perfil')
+    context = {
+        'perfil': perfil,
+    }
+    return render(request, 'CestaMagica/400.html', status=400, context=context)

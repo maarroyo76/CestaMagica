@@ -2,8 +2,5 @@ venv/
 __pycache__/
 *.log
 .env
-secrets.json
-.DS_Store
 .vscode/
 *.pyc
-db.sqlite3.sql

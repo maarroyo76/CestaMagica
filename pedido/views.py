@@ -60,26 +60,20 @@ def _tbk_options():
         integration_type=settings.WEBPAY_ENV 
     )
 
+
 @login_required
 @require_POST
 def iniciar_pago(request, pedido_id):
     pedido = get_object_or_404(Pedido, pk=pedido_id, usuario=request.user, estado="PEND")
 
-    try:
-        datos = json.loads(request.body)
-    except Exception:
-        return JsonResponse({"error": "JSON inválido"}, status=400)
+    metodo = request.POST.get("metodo_retiro")
+    notas = request.POST.get("notas")
 
-    monto_str = datos.get("monto")
-    if monto_str is None:
-        return JsonResponse({"error": "Monto no proporcionado"}, status=400)
-
-    # Validación simple: compara monto recibido con pedido.total usando float()
-    try:
-        if float(monto_str) != float(pedido.total):
-            return JsonResponse({"error": "Monto inválido"}, status=400)
-    except (ValueError, TypeError):
-        return JsonResponse({"error": "Monto inválido"}, status=400)
+    if metodo:
+        pedido.metodo_retiro = metodo
+    if notas:
+        pedido.notas = notas
+    pedido.save(update_fields=["metodo_retiro", "notas"])
 
     buy_order = str(pedido.codigo_pedido)
     session_id = str(request.user.id)
@@ -96,7 +90,6 @@ def iniciar_pago(request, pedido_id):
     pedido.token_ws = resp["token"]
     pedido.save(update_fields=["token_ws"])
 
-    # Para test, responde con JSON y no redirige
     if request.GET.get("test") == "1":
         return JsonResponse({
             "url_pago": resp["url"] + "?token_ws=" + resp["token"],
@@ -104,6 +97,7 @@ def iniciar_pago(request, pedido_id):
         })
 
     return redirect(resp["url"] + "?token_ws=" + resp["token"])
+
 
 
 @login_required

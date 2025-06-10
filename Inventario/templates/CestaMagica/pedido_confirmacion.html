@@ -25,27 +25,27 @@
       </div>
     </div>
 
-  <form method="post" action="">
-    {% csrf_token %}
-    <div class="mb-3">
-      <label for="metodo_retiro" class="form-label">Método de retiro</label>
-      <select class="form-select" id="metodo_retiro" name="metodo_retiro" required>
-        <option value="">Selecciona...</option>
-        <option value="retiro">Retiro en tienda</option>
-        <option value="delivery">Delivery</option>
-      </select>
-    </div>
-
-    <div class="mb-3">
-      <label for="notas" class="form-label">Notas del pedido (opcional)</label>
-      <textarea class="form-control" id="notas" name="notas" rows="3"></textarea>
-    </div>
-
-    <a href="{% url 'pedido:iniciar_pago' pedido_id=pedido_id %}" class="btn btn-success w-100">
-      Pagar con Webpay
-    </a>
+    <form method="post" action="{% url 'pedido:iniciar_pago' pedido_id=pedido_id %}">
+      {% csrf_token %}
     
-  </form>
+      <div class="mb-3">
+        <label for="metodo_retiro" class="form-label">Método de retiro</label>
+        <select class="form-select" id="metodo_retiro" name="metodo_retiro" required>
+          <option value="">Selecciona...</option>
+          <option value="retiro">Retiro en tienda</option>
+          <option value="delivery">Delivery</option>
+        </select>
+      </div>
+    
+      <div class="mb-3">
+        <label for="notas" class="form-label">Notas del pedido (opcional)</label>
+        <textarea class="form-control" id="notas" name="notas" rows="3"></textarea>
+      </div>
+    
+    
+      <button type="submit" class="btn btn-success w-100">Pagar con Webpay</button>
+    </form>
+    
 
   <div class="mt-3">
     <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-secondary w-100">Volver al carrito</a>
