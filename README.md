@@ -73,9 +73,10 @@ Para ejecutar el proyecto en tu entorno local, sigue estos pasos:
 
 ## Estado del Proyecto
 El proyecto se encuentra en desarrollo activo. Las siguientes implementaciones en curso incluyen:
-- Desarrollo del sistema de pedidos (carrito de compras y vista de pago).
-- Integración con una plataforma de pagos en línea.
-- Gestión de pedidos por parte del equipo administrativo.
+- Sistema de descuentos automatico
+- Programa de fidelizacion
+- Sistema de reseñas para productos
+- Historial de pedidos del usuario
 
 ---
 **Contacto:** Si tienes preguntas o sugerencias, no dudes en abrir un issue en el repositorio.
