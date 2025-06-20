@@ -1,19 +1,41 @@
-# CestaMágica
+# 🧺 CestaMágica
 
-CestaMágica es un proyecto de desarrollo web diseñado para mejorar la presencia digital y la eficiencia operativa de una distribuidora de confites, helados, abarrotes y artículos de cumpleaños. Su objetivo es proporcionar una plataforma fácil de usar para visualizar el inventario y optimizar el proceso de compra y gestión de pedidos.
+**CestaMágica** es una aplicación web desarrollada para modernizar la operación y ventas de una distribuidora de confites, helados, abarrotes y artículos de cumpleaños. Brinda una experiencia de compra moderna tanto para clientes como para administradores del sistema.
 
-## Características Principales
-- **Visualización de Inventario:** Presentación organizada de productos con secciones de ofertas y destacados.
-- **Gestión de Usuarios:** Registro y autenticación de clientes.
-- **Carrito de Compras:** Permite a los usuarios guardar productos antes de realizar el pago.
-- **Procesamiento de Pedidos:** Generación de un ID de pedido para retiro en tienda.
-- **Gestión de Inventario:** Permisos restringidos para administración de productos.
-- **Precios Dinámicos:** Diferenciación de precios según la cantidad adquirida.
+## 🚀 Características Principales
 
-## Tecnologías Utilizadas
-- **Backend:** Django (con posibilidad de usar Django Rest Framework en el futuro).
-- **Base de Datos:** SQLite (por ahora, con posibilidad de optimización futura).
-- **Frontend:** HTML, CSS, JavaScript (posible integración con frameworks en el futuro).
+- 🔍 **Catálogo Dinámico**: Visualización clara y organizada de productos con filtros, paginación y ofertas destacadas.
+- 👤 **Gestión de Usuarios**: Registro, autenticación y administración de sesiones para clientes.
+- 🛒 **Carrito de Compras Mejorado**:
+  - Botones `+` y `-` para ajustar cantidades sin recargar la página.
+  - Confirmación manual de agregados.
+  - Indicador visual del número de productos.
+- 💳 **Pagos con Webpay**: Integración con Transbank (modo sandbox) para procesar pagos seguros.
+- 📦 **Sistema de Pedidos**:
+  - Confirmación y resumen visual del pedido.
+  - Generación automática de un código único por pedido.
+  - PDF descargable con el detalle del pedido y logo personalizado.
+- 🧾 **PDF del Pedido**:
+  - Incluye productos, cantidades, subtotales, totales, métodos de retiro y pago.
+  - Diseño limpio con logo de empresa alineado correctamente.
+- 🛠️ **Gestión de Inventario (Admin)**:
+  - Agregar, editar o eliminar productos.
+  - Marcas personalizables desde la interfaz.
+- 🖼️ **Diseño Adaptativo**: Compatible con pantallas móviles y de escritorio.
+- ✅ **Toasts Personalizados**: Notificaciones visuales modernas para acciones del usuario.
+
+## 🧑‍💻 Tecnologías Utilizadas
+
+| Tecnología     | Rol                               |
+|----------------|------------------------------------|
+| Django         | Backend y gestión de sesiones     |
+| SQLite         | Base de datos (por ahora)         |
+| HTML/CSS/JS    | Interfaz web básica               |
+| jQuery         | AJAX para carrito dinámico        |
+| ReportLab      | Generación de PDF de pedidos      |
+| Transbank SDK  | Integración con Webpay Plus       |
+| Bootstrap Icons| Íconos en UI                      |
+
 
 ## Instalación
 Para ejecutar el proyecto en tu entorno local, sigue estos pasos:
@@ -29,7 +51,7 @@ Para ejecutar el proyecto en tu entorno local, sigue estos pasos:
 3. Crea un entorno virtual y actívalo:
    ```sh
    python -m venv venv
-   source venv/bin/activate  # En Windows: venv\Scripts\activate
+   venv\Scripts\activate
    ```
 4. Instala las dependencias:
    ```sh
