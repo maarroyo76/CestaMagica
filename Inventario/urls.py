@@ -13,7 +13,6 @@ urlpatterns = [
     path('gestion/editar/<int:id>/', views.editar_producto, name='editar_producto'),
     path('gestion/eliminar/<int:id>/', views.eliminar_producto, name='eliminar_producto'),
     path('producto/<int:id>/', views.detalle_producto, name='detalle_producto'),
-    path('retroceder/', views.retroceder, name='retroceder'),
     path('perfil/', views.perfil, name='perfil'),
     path('carrito/', include(('Cart.urls', 'cart'), namespace='cart')),
     path('pedido/', include(('pedido.urls', 'pedido'), namespace='pedido')),

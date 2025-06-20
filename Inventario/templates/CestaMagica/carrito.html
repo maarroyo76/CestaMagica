@@ -16,6 +16,35 @@
     font-weight: bold;
     font-size: 1.2rem;
   }
+  .custom-toast {
+    min-width: 220px;
+    max-width: 300px;
+    margin-bottom: 10px;
+    padding: 12px 16px;
+    color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    animation: slideIn 0.4s ease, fadeOut 0.4s ease 2.8s forwards;
+  }
+  
+  .custom-toast.success { background-color: #28a745; }
+  .custom-toast.danger { background-color: #dc3545; }
+  .custom-toast.info { background-color: #0d6efd; }
+  .custom-toast.warning { background-color: #ffc107; color: #333; }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-20px); }
+  }
+  
 </style>
 {% endblock %}
 
@@ -29,37 +58,32 @@
         <h4 class="mb-4">Carrito de Compras</h4>
 
         <div id="cart-items">
-          {% if cart|length > 0 %}
-            {% for item in cart %}
-              <div class="d-flex align-items-start cart-item" id="cart-item-{{ item.product_id }}">
-                <img src="{{ item.image }}" class="img-thumbnail me-3" style="width: 80px;">
-                <div class="flex-grow-1">
-                  <div class="fw-bold">{{ item.name }}</div>
-                  <div class="text-muted small">{{ item.description }}</div>
-                  <div class="d-flex align-items-center mt-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm decrement-btn" data-id="{{ item.product_id }}">
-                      <i class="bi bi-dash"></i>
-                    </button>
-                    <span class="mx-2">{{ item.quantity }}</span>
-                    <button type="button" class="btn btn-outline-secondary btn-sm increment-btn" data-id="{{ item.product_id }}">
-                      <i class="bi bi-plus"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="text-end ms-3">
-                  <div>CLP ${{ item.price|floatformat:0|intcomma }}</div>
-                  <div class="text-muted small">Subtotal: CLP ${{ item.subtotal|floatformat:0|intcomma }}</div>
-                  <button type="button" class="btn btn-sm btn-link text-danger p-0 mt-1 remove-btn" data-id="{{ item.product_id }}">
-                    <i class="bi bi-x-lg"></i>
+          {% for item in cart %}
+            <div class="d-flex align-items-start cart-item" id="cart-item-{{ item.product_id }}">
+              <img src="{{ item.image }}" class="img-thumbnail me-3" style="width: 80px;">
+              <div class="flex-grow-1">
+                <div class="fw-bold">{{ item.name }}</div>
+                <div class="text-muted small">{{ item.description }}</div>
+                <div class="d-flex align-items-center mt-2">
+                  <button type="button" class="btn btn-outline-secondary btn-sm decrement-btn" data-id="{{ item.product_id }}">
+                    <i class="bi bi-dash"></i>
+                  </button>
+                  <span class="mx-2">{{ item.quantity }}</span>
+                  <button type="button" class="btn btn-outline-secondary btn-sm increment-btn" data-id="{{ item.product_id }}">
+                    <i class="bi bi-plus"></i>
                   </button>
                 </div>
               </div>
-            {% endfor %}
-          {% else %}
-            <p>No hay productos en el carrito.</p>
-          {% endif %}
+              <div class="text-end ms-3">
+                <div>CLP ${{ item.price|floatformat:0|intcomma }}</div>
+                <div class="text-muted small">Subtotal: CLP ${{ item.subtotal|floatformat:0|intcomma }}</div>
+                <button type="button" class="btn btn-sm btn-link text-danger p-0 mt-1 remove-btn" data-id="{{ item.product_id }}">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            </div>
+          {% endfor %}
         </div>
-
         <hr>
         <a href="{% url 'productos' %}" class="text-decoration-none">&larr; Volver a la tienda</a>
       </div>
@@ -92,8 +116,10 @@
             <button class="btn btn-dark w-100">Finalizar compra</button>
           </form>
         </div>
+        <div id="custom-toast-container" style="position: fixed; bottom: 5rem; right: 1.5rem; z-index: 9999;"></div>
       </div>
     </div>
+    {% comment %} <div id="custom-toast-container" style="position: fixed; bottom: 5rem; right: 1.5rem; z-index: 9999;"></div> {% endcomment %}
   </div>
 </div>
 {% endblock %}
@@ -103,37 +129,58 @@
 <script>
   $(document).ready(function() {
     $.ajax({
-      url: "{% url 'cart:get_cart_state' %}",  // Debes crear esta vista en Django
+      url: "{% url 'cart:get_cart_state' %}",
       type: "GET",
       headers: { "X-Requested-With": "XMLHttpRequest" }
-    }).done(updateCart);
+    }).done(function(response) {
+      updateCart(response);
+      updateCartBadge(response.total_items);  // <- al cargar la página
+    });
   });
 
-  function showToast(message, type = "success") {
-    const toastId = "toast-" + Math.random().toString(36).substr(2, 5);
-    const toastHtml = `
-      <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-          <div class="toast-body">${message}</div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-      </div>
-    `;
-    const toastContainer = $("#toast-container");
-    toastContainer.append(toastHtml);
-    const toastElement = new bootstrap.Toast(document.getElementById(toastId), { delay: 2000 });
-    toastElement.show();
+  function updateCartBadge(count) {
+    if (count > 0) {
+      $("#navbar-cart-count").text(count).show();
+    } else {
+      $("#navbar-cart-count").hide();
+    }
   }
+
+  function showToast({message, type = "success"}) {
+    const toast = document.createElement("div");
+    toast.className = `custom-toast ${type}`;
+  
+    const iconMap = {
+      success: "✔️",
+      danger: "❌",
+      info: "ℹ️",
+      warning: "⚠️"
+    };
+  
+    toast.innerHTML = `<span>${iconMap[type] || "🔔"}</span> ${message}`;
+  
+    const container = document.getElementById("custom-toast-container");
+    container.appendChild(toast);
+  
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+  
 
   function animateItem(id) {
     const el = $(`#cart-item-${id}`);
     el.fadeOut(100).fadeIn(100);
   }
 
-  <!-- Removed duplicate formatCLP function definition -->
-
   function updateCart(response) {
     let itemsHtml = "";
+    if (!response.cart_items || response.cart_items.length === 0) {
+      $("#cart-items").html('<p>No hay productos en el carrito.</p>');
+      $("#summary-items").text(0);
+      $("#summary-total").text("CLP $0");
+      return;
+    }
     response.cart_items.forEach(item => {
       itemsHtml += `
         <div class="d-flex align-items-start cart-item" id="cart-item-${item.product_id}">
@@ -166,6 +213,7 @@
     const totalItems = response.cart_items.reduce((acc, item) => acc + item.quantity, 0);
     $("#summary-items").text(totalItems);
     $("#summary-total").text("CLP $" + formatCLP(response.total));
+    $("#navbar-cart-count").text(response.total_items);
   }
 
   function sendCartRequest(url, action, id) {
@@ -177,9 +225,10 @@
     }).done(function(response) {
       updateCart(response);
       animateItem(id);
-      showToast(action, "success");
+      updateCartBadge(response.total_items);  
+      showToast({message: action, type: "success"});
     }).fail(function() {
-      showToast("Error al procesar la solicitud", "danger");
+      showToast({message: "Error al procesar la solicitud", type: "danger"});
     });
   }
 
@@ -205,8 +254,5 @@
     return number.toLocaleString("es-CL");
   }
 </script>
-
-<!-- Toast container -->
-<div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;"></div>
 {% endblock %}
 

@@ -9,14 +9,43 @@
 
     <link rel="stylesheet" href="{% static 'CSS/style.css' %}" />
 
-    {% block css %}{% endblock %}
+    <style>
+      #navbar-cart-count {
+        position: absolute;
+        top: 0;
+        right: 0;
+        transform: translate(50%, -50%);
+        background-color: #cc479a;
+        color: white;
+        padding: 0.2em 0.5em;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 9999px; /* círculo */
+        min-width: 1.3em;
+        text-align: center;
+        line-height: 1;
+        pointer-events: none; /* para que no moleste al clic */
+        display: none; /* oculto por defecto, se muestra con JS */
+        z-index: 1000;
+        user-select: none;
+        box-shadow: 0 0 3px rgba(0,0,0,0.3);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+      #cart-icon {
+        position: relative;
+        display: inline-block;
+      }
+    </style>
+
+    {% block css %}
+    {% endblock %}
     {% block titulo %}{% endblock %}
   </head>
   <body>
     <nav class="navbar navbar-expand-lg">
       <div class="container">
         <a class="navbar-brand" href="{% url 'home' %}">
-          <img src="{% static 'images/Logo-Photoroom.png' %}" alt="Logo" style="height: 75px; width: auto; margin-right: 10px"/>
+          <img src="{% static 'Logo.png' %}" alt="Logo" style="height: 75px; width: auto; margin-right: 10px"/>
           Cesta Mágica
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,11 +74,14 @@
                 <i class="bi bi-bag"></i> Productos
               </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item position-relative">
               <a class="nav-link" href="{% url 'cart:cart_detail' %}">
-                <i class="bi bi-cart"></i> Carrito
+                <div id="cart-icon">
+                  <i class="bi bi-cart"></i> Carrito
+                  <span id="navbar-cart-count">3</span>
+                </div> 
               </a>
-            </li>
+            </li>            
             {% if perfil == 'admin' or perfil == 'staff' %}
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'gestion' %}">
@@ -70,6 +102,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    {% block js %}{% endblock %}
+    <script>
+      $(document).ready(function() {
+        $.get("{% url 'cart:get_cart_state' %}", function(response) {
+          let count = response.total_items;
+          if (count > 0) {
+            $("#navbar-cart-count").text(count).show();
+          } else {
+            $("#navbar-cart-count").hide();
+          }
+        });
+      });
+    </script>
+    {% block js %}
+    {% endblock %}
   </body>
 </html>

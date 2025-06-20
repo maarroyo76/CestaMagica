@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from .models import Producto, Categoria, Marca, userProfile
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -218,11 +219,13 @@ def eliminar_producto(request, id):
 
 def detalle_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
+    referer = request.META.get('HTTP_REFERER', reverse('productos'))
     perfil = request.session.get('perfil')
 
     context = {
         'producto': producto,
-        'perfil': perfil
+        'perfil': perfil,
+        'referer': referer,
     }
 
     return render(request, 'CestaMagica/detalle.html', context)
