@@ -36,7 +36,7 @@ def confirmar_pedido(request):
 
     pedido = Pedido.objects.create(
         usuario=request.user,
-        estado="PEND",
+        estado="PAG",
         total=total,
         metodo_pago="Webpay",
     )

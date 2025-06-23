@@ -1,15 +1,17 @@
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from .models import Producto, Categoria, Marca, userProfile
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
-from .decorators import role_required
 from django.db import transaction
-from pedido.models import Pedido, DetallePedido
 from django.core.paginator import Paginator
+from django.utils.dateparse import parse_date
+
+from .models import Producto, Categoria, Marca, userProfile
+from .decorators import role_required
+from pedido.models import Pedido, DetallePedido
 
 def home(request):
     # Obtiene los productos destacados (máximo 8)
@@ -81,7 +83,7 @@ def gestion(request):
     perfil = request.session.get('perfil')
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
-    pedidos = Pedido.objects.all().order_by('-fecha')[:10]
+    pedidos = Pedido.objects.all().order_by('-fecha')
     categorias = categorias.order_by('nombre')
     marcas = Marca.objects.all()
     marcas = marcas.order_by('nombre')
@@ -99,6 +101,21 @@ def gestion(request):
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
     
+    estado_pedido = request.GET.get('estado_pedido')
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    if estado_pedido:
+        pedidos = pedidos.filter(estado=estado_pedido)
+
+    if fecha_desde:
+        fecha_desde_dt = parse_date(fecha_desde)
+        if fecha_desde_dt:
+            pedidos = pedidos.filter(fecha__date__gte=fecha_desde_dt)
+
+    if fecha_hasta:
+        fecha_hasta_dt = parse_date(fecha_hasta)
+        if fecha_hasta_dt:
+            pedidos = pedidos.filter(fecha__date__lte=fecha_hasta_dt)
     
     context = {
         'perfil': perfil,
@@ -208,7 +225,7 @@ def contacto(request):
 def actualizar_estado_pedido(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id)
     nuevo_estado = request.POST.get('estado')
-    if nuevo_estado in ['pendiente', 'procesando', 'completado']:
+    if nuevo_estado in ['PAG', 'PRE', 'RET', 'ENT', 'CAN']:
         pedido.estado = nuevo_estado
         pedido.save()
         messages.success(request, "Estado del pedido actualizado.")
