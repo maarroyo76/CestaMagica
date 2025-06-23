@@ -53,10 +53,11 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarContent">
           <form class="d-flex mx-auto w-100" role="search" action="{% url 'productos' %}" method="GET">
-            {% csrf_token %}
-            <input class="form-control me-2" type="search" name="search" placeholder="Buscar productos..." aria-label="Search" value="{{ request.GET.search|default:'' }}"/>
-            <button class="btn btn-outline-warning" type="submit">Buscar</button>
+              {% csrf_token %}
+              <input class="form-control me-2" style="max-width: 85%;" type="search" name="search" placeholder="Buscar productos..." aria-label="Search" value="{{ request.GET.search|default:'' }}">
+              <button class="btn btn-outline-warning" type="submit">Buscar</button>
           </form>
+        
           <ul class="navbar-nav">
             <li class="nav-item">
               {% if not perfil %}
