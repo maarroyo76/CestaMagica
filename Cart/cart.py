@@ -6,19 +6,19 @@ class Cart:
             cart = self.session["cart"] = {}
         self.cart = cart
 
-    def add(self, product):
+    def add(self, product, quantity):
         product_id = str(product.id)
         if product_id not in self.cart:
             self.cart[product_id] = {
                 "product_id": product.id,
                 "name": product.nombre,
-                "quantity": 1,
+                "quantity": quantity,
                 "description": product.descripcion,
                 "price": float(product.precio),
                 "image": product.imagen.url
             }
         else:
-            self.cart[product_id]["quantity"] += 1
+            self.cart[product_id]["quantity"] += quantity
         self.save()
 
     def save(self):
@@ -49,7 +49,8 @@ class Cart:
     def get_total(self):
         total = 0
         for item in self.cart.values():
-            total += float(item["price"]) * item["quantity"]
+            if isinstance(item, dict) and "price" in item and "quantity" in item:
+                total += float(item["price"]) * item["quantity"]
         return int(round(total))
 
     def __iter__(self):

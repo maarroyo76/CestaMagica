@@ -1,12 +1,17 @@
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from .models import Producto, Categoria, Marca, userProfile
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .decorators import role_required
+from django.views.decorators.http import require_POST
 from django.db import transaction
-from pedido.models import Pedido, DetallePedido
 from django.core.paginator import Paginator
+from django.utils.dateparse import parse_date
+
+from .models import Producto, Categoria, Marca, userProfile
+from .decorators import role_required
+from pedido.models import Pedido, DetallePedido
 
 def home(request):
     # Obtiene los productos destacados (máximo 8)
@@ -78,6 +83,7 @@ def gestion(request):
     perfil = request.session.get('perfil')
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
+    pedidos = Pedido.objects.all().order_by('-fecha')
     categorias = categorias.order_by('nombre')
     marcas = Marca.objects.all()
     marcas = marcas.order_by('nombre')
@@ -95,18 +101,108 @@ def gestion(request):
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
     
+    estado_pedido = request.GET.get('estado_pedido')
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    if estado_pedido:
+        pedidos = pedidos.filter(estado=estado_pedido)
+
+    if fecha_desde:
+        fecha_desde_dt = parse_date(fecha_desde)
+        if fecha_desde_dt:
+            pedidos = pedidos.filter(fecha__date__gte=fecha_desde_dt)
+
+    if fecha_hasta:
+        fecha_hasta_dt = parse_date(fecha_hasta)
+        if fecha_hasta_dt:
+            pedidos = pedidos.filter(fecha__date__lte=fecha_hasta_dt)
     
     context = {
         'perfil': perfil,
         'productos': productos,
         'categorias': categorias,
-        'marcas': marcas
+        'marcas': marcas,
+        'pedidos': pedidos,
+
     }
 
     return render(request, 'CestaMagica/Gestion/gestion.html', context)
 
-def contacto(request):
+@require_POST
+@role_required('admin', 'staff')
+def agregar_marca(request):
+    nombre = request.POST.get('nombre')
+    if nombre:
+        Marca.objects.create(nombre=nombre)
+        messages.success(request, "Marca agregada correctamente.")
+    return redirect('gestion')
+
+@role_required('admin', 'staff')
+def editar_marca(request, marca_id):
+    marca = get_object_or_404(Marca, id=marca_id)
+    nombre = request.POST.get('nombre', '').strip()
+
+    if not nombre:
+        return HttpResponseBadRequest("El nombre de la marca no puede estar vacío.")
     
+    marca.nombre = nombre
+    marca.save()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
+    
+    messages.success(request, "Marca actualizada correctamente.")
+    return redirect('gestion')
+
+@role_required('admin', 'staff')
+def eliminar_marca(request, marca_id):
+    marca = get_object_or_404(Marca, id=marca_id)
+    marca.delete()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
+
+    messages.success(request, "Marca eliminada.")
+    return redirect('gestion')
+
+@require_POST
+@role_required('admin', 'staff')
+def agregar_categoria(request):
+    nombre = request.POST.get('nombre')
+    if nombre:
+        Categoria.objects.create(nombre=nombre)
+        messages.success(request, "Categoría agregada correctamente.")
+    return redirect('gestion')
+
+@role_required('admin', 'staff')
+def editar_categoria(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    nombre = request.POST.get('nombre', '').strip()
+
+    if not nombre:
+        return HttpResponseBadRequest("Nombre requerido")
+
+    categoria.nombre = nombre
+    categoria.save()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
+    
+    messages.success(request, "Categoría actualizada.")
+    return redirect('gestion')
+
+@role_required('admin', 'staff')
+def eliminar_categoria(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    categoria.delete()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
+
+    messages.success(request, "Categoría eliminada.")
+    return redirect('gestion')
+
+def contacto(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
         email = request.POST.get('email')
@@ -122,6 +218,20 @@ def contacto(request):
         'perfil': perfil,
     }
     return render(request, 'CestaMagica/contacto.html', context)
+
+
+@require_POST
+@role_required('admin', 'staff')
+def actualizar_estado_pedido(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+    nuevo_estado = request.POST.get('estado')
+    if nuevo_estado in ['PAG', 'PRE', 'RET', 'ENT', 'CAN']:
+        pedido.estado = nuevo_estado
+        pedido.save()
+        messages.success(request, "Estado del pedido actualizado.")
+    else:
+        messages.error(request, "Estado inválido.")
+    return redirect('gestion')
 
 @role_required('admin', 'staff')
 def agregar_producto(request):
@@ -218,11 +328,13 @@ def eliminar_producto(request, id):
 
 def detalle_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
+    referer = request.META.get('HTTP_REFERER', reverse('productos'))
     perfil = request.session.get('perfil')
 
     context = {
         'producto': producto,
-        'perfil': perfil
+        'perfil': perfil,
+        'referer': referer,
     }
 
     return render(request, 'CestaMagica/detalle.html', context)

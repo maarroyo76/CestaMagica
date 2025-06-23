@@ -8,10 +8,11 @@ from Inventario.models import Producto
 class Pedido(models.Model):
 
     ESTADOS = [
-        ('PEND', 'Pendiente'),
         ('PAG', 'Pagado'),
-        ('CAN', 'Cancelado'),
+        ('PRE', 'En preparación'),
+        ('RET', 'Pendiente de retiro'),
         ('ENT', 'Entregado'),
+        ('CAN', 'Cancelado'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
