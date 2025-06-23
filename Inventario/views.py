@@ -1,9 +1,11 @@
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from .models import Producto, Categoria, Marca, userProfile
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.views.decorators.http import require_POST
 from .decorators import role_required
 from django.db import transaction
 from pedido.models import Pedido, DetallePedido
@@ -79,6 +81,7 @@ def gestion(request):
     perfil = request.session.get('perfil')
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
+    pedidos = Pedido.objects.all().order_by('-fecha')[:10]
     categorias = categorias.order_by('nombre')
     marcas = Marca.objects.all()
     marcas = marcas.order_by('nombre')
@@ -101,13 +104,88 @@ def gestion(request):
         'perfil': perfil,
         'productos': productos,
         'categorias': categorias,
-        'marcas': marcas
+        'marcas': marcas,
+        'pedidos': pedidos,
+
     }
 
     return render(request, 'CestaMagica/Gestion/gestion.html', context)
 
-def contacto(request):
+@require_POST
+@role_required('admin', 'staff')
+def agregar_marca(request):
+    nombre = request.POST.get('nombre')
+    if nombre:
+        Marca.objects.create(nombre=nombre)
+        messages.success(request, "Marca agregada correctamente.")
+    return redirect('gestion')
+
+@role_required('admin', 'staff')
+def editar_marca(request, marca_id):
+    marca = get_object_or_404(Marca, id=marca_id)
+    nombre = request.POST.get('nombre', '').strip()
+
+    if not nombre:
+        return HttpResponseBadRequest("El nombre de la marca no puede estar vacío.")
     
+    marca.nombre = nombre
+    marca.save()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
+    
+    messages.success(request, "Marca actualizada correctamente.")
+    return redirect('gestion')
+
+@role_required('admin', 'staff')
+def eliminar_marca(request, marca_id):
+    marca = get_object_or_404(Marca, id=marca_id)
+    marca.delete()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
+
+    messages.success(request, "Marca eliminada.")
+    return redirect('gestion')
+
+@require_POST
+@role_required('admin', 'staff')
+def agregar_categoria(request):
+    nombre = request.POST.get('nombre')
+    if nombre:
+        Categoria.objects.create(nombre=nombre)
+        messages.success(request, "Categoría agregada correctamente.")
+    return redirect('gestion')
+
+@role_required('admin', 'staff')
+def editar_categoria(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    nombre = request.POST.get('nombre', '').strip()
+
+    if not nombre:
+        return HttpResponseBadRequest("Nombre requerido")
+
+    categoria.nombre = nombre
+    categoria.save()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
+    
+    messages.success(request, "Categoría actualizada.")
+    return redirect('gestion')
+
+@role_required('admin', 'staff')
+def eliminar_categoria(request, categoria_id):
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    categoria.delete()
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'ok'})
+
+    messages.success(request, "Categoría eliminada.")
+    return redirect('gestion')
+
+def contacto(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
         email = request.POST.get('email')
@@ -123,6 +201,20 @@ def contacto(request):
         'perfil': perfil,
     }
     return render(request, 'CestaMagica/contacto.html', context)
+
+
+@require_POST
+@role_required('admin', 'staff')
+def actualizar_estado_pedido(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+    nuevo_estado = request.POST.get('estado')
+    if nuevo_estado in ['pendiente', 'procesando', 'completado']:
+        pedido.estado = nuevo_estado
+        pedido.save()
+        messages.success(request, "Estado del pedido actualizado.")
+    else:
+        messages.error(request, "Estado inválido.")
+    return redirect('gestion')
 
 @role_required('admin', 'staff')
 def agregar_producto(request):

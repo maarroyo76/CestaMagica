@@ -16,6 +16,13 @@ urlpatterns = [
     path('perfil/', views.perfil, name='perfil'),
     path('carrito/', include(('Cart.urls', 'cart'), namespace='cart')),
     path('pedido/', include(('pedido.urls', 'pedido'), namespace='pedido')),
+    path('marcas/agregar/', views.agregar_marca, name='agregar_marca'),
+    path('marcas/editar/<int:marca_id>/', views.editar_marca, name='editar_marca'),
+    path('marcas/eliminar/<int:marca_id>/', views.eliminar_marca, name='eliminar_marca'),
+    path('categorias/agregar/', views.agregar_categoria, name='agregar_categoria'),
+    path('categorias/editar/<int:categoria_id>/', views.editar_categoria, name='editar_categoria'),
+    path('categorias/eliminar/<int:categoria_id>/', views.eliminar_categoria, name='eliminar_categoria'),
+    path('pedidos/actualizar_estado/<uuid:pedido_id>/', views.actualizar_estado_pedido, name='actualizar_estado_pedido'),
 ]
 
 handler404 = views.error_404_view
