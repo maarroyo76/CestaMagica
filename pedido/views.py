@@ -81,7 +81,7 @@ def _tbk_options():
 @login_required
 @require_POST
 def iniciar_pago(request, pedido_id):
-    pedido = get_object_or_404(Pedido, pk=pedido_id, usuario=request.user, estado="PEND")
+    pedido = get_object_or_404(Pedido, pk=pedido_id, usuario=request.user)
 
     metodo = request.POST.get("metodo_retiro")
     notas = request.POST.get("notas")
