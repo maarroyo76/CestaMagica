@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+<title>Cesta Mágica | Contacto</title>
+{% endblock %}
+
+{% block css %}
+<style>
+  :root {
+    --color-yellow-light: #f6eca9;
+    --color-green-dark: #477c3b;
+    --color-pink-bright: #cc479a;
+    --color-blue-light: #6bbfdf;
+    --color-brown-light: #c38855;
+    --color-red-dark: #bd403a;
+  }
+
+  body {
+    background-color: var(--color-yellow-light);
+  }
+
+  h1, h3 {
+    color: var(--color-pink-bright);
+  }
+
+  .text-primary {
+    color: var(--color-green-dark) !important;
+  }
+
+  .btn-primary {
+    background-color: var(--color-blue-light);
+    border-color: var(--color-blue-light);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-green-dark);
+    border-color: var(--color-green-dark);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-brown-light);
+    border-color: var(--color-brown-light);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-red-dark);
+    border-color: var(--color-red-dark);
+  }
+
+  .form-label {
+    font-weight: bold;
+    color: var(--color-pink-bright);
+  }
+
+  .form-control {
+    border: 1px solid var(--color-blue-light);
+  }
+
+  .form-control:focus {
+    border-color: var(--color-pink-bright);
+    box-shadow: 0 0 0 0.2rem rgba(204, 71, 154, 0.25);
+  }
+
+  .container h1 {
+    border-bottom: 2px solid var(--color-blue-light);
+    display: inline-block;
+    padding-bottom: 5px;
+  }
+
+  ul.list-unstyled li {
+    font-size: 1.1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+  <h1 class="text-center mb-4">Contáctanos</h1>
+  <div class="row">
+    <!-- Información de contacto -->
+    <div class="col-md-6">
+      <h3 class="mb-4">Información de contacto</h3>
+      <ul class="list-unstyled">
+        <li class="mb-3">
+          <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+          <strong>Dirección:</strong> Las Parcelas 8345, 7911819 Peñalolén, Región Metropolitana
+        </li>
+        <li class="mb-3">
+          <i class="bi bi-telephone-fill text-primary me-2"></i>
+          <strong>Teléfono:</strong> 22 292 1015
+        </li>
+        <li class="mb-3">
+          <i class="bi bi-phone-fill text-primary me-2"></i>
+          <strong>Celular:</strong> 9 5211 9378
+        </li>
+        <li class="mb-3">
+          <i class="bi bi-envelope-fill text-primary me-2"></i>
+          <strong>Correo:</strong>
+          <a href="mailto:comercializadoracestamagica@gmail.com">comercializadoracestamagica@gmail.com</a>
+        </li>
+        <li class="mb-3">
+          <i class="bi bi-clock-fill text-primary me-2"></i>
+          <strong>Horario de atención:</strong>
+          <br>Lunes a Viernes: 9:30 a 19:00 hrs.
+          <br>Sábados: 10:00 a 14:00 hrs.
+        </li>
+      </ul>
+    </div>
+
+    <!-- Formulario de contacto -->
+    <div class="col-md-6">
+      <h3 class="mb-4">Envíanos un mensaje</h3>
+      <form action="" method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="nombre" class="form-label">Nombre</label>
+          <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Tu nombre" required>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Correo Electrónico</label>
+          <input type="email" id="email" name="email" class="form-control" placeholder="Tu correo electrónico" required>
+        </div>
+        <div class="mb-3">
+          <label for="asunto" class="form-label">Asunto</label>
+          <input type="text" id="asunto" name="asunto" class="form-control" placeholder="Motivo de tu consulta" required>
+        </div>
+        <div class="mb-3">
+          <label for="mensaje" class="form-label">Mensaje</label>
+          <textarea id="mensaje" name="mensaje" rows="5" class="form-control" placeholder="Escribe tu mensaje aquí" required></textarea>
+        </div>
+        <div class="text-end">
+          <button type="submit" class="btn btn-primary">Enviar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block titulo %}<title>Pedido Exitoso</title>{% endblock %}
+{% block content %}
+<div class="container py-5 d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+  <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
+    <div class="card-body text-center">
+      <div class="mb-4">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+      </div>
+      <h2 class="card-title mb-3">¡Pago exitoso!</h2>
+      <p class="mb-2">Código del pedido:</p>
+      <p class="fw-bold text-primary mb-3">{{ pedido.codigo_pedido }}</p>
+      <p class="mb-2">Monto pagado:</p>
+      <p class="fw-bold text-success mb-4">CLP ${{ pedido.total|floatformat:0|intcomma }}</p>
+      <div class="d-grid gap-2">
+        <a href="{% url 'pedido:descargar_pdf_pedido' pedido.id %}" class="btn btn-outline-success">
+          <i class="bi bi-file-earmark-arrow-down"></i> Descargar comprobante PDF
+        </a>
+        <a href="{% url 'productos' %}" class="btn btn-primary">
+          <i class="bi bi-bag-plus"></i> Seguir comprando
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

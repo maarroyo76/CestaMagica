@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load form_extras %}
+
+{% block titulo %}
+    <title>Cesta Magica | Gestion</title>
+{% endblock %}
+
+{% block content %}
+<div class="container mb-3">
+    <div class="row justify-content-center mb-3 mt-3">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Agregar Producto</h3>
+                <a href="{% url 'gestion' %}" class="btn btn-dark">Volver</a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 col-md-8 col-lg-6 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <form id="form_agregar" method="POST" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {% for field in form %}
+                            {% if field.name == 'destacado' %}
+                                <div class="mb-3 form-check form-switch">
+                                    {{ field|add_class:"form-check-input" }}
+                                    
+                                    <label for="{{ field.id_for_label }}" class="form-check-label">{{ field.label }}</label>
+                                    
+                                    <i class="bi bi-info-circle text-primary" data-bs-toggle="tooltip" 
+                                    title="Los productos destacados aparecen en la página principal."></i>
+                                    
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            
+                            {% else %}
+                                <div class="mb-3">
+                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                    
+                                    {% if field.field.widget.input_type == 'select' %}
+                                        {{ field|add_class:"form-select" }}
+                                    {% else %}
+                                        {{ field|add_class:"form-control" }}
+                                    {% endif %}
+                                    
+                                    {% if field.help_text %}
+                                        <div class="form-text">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="d-grid">
+                            {% if 'agregar' in request.path %}
+                                <button class="btn btn-primary" type="submit">Agregar</button>
+                            {% else %}
+                                <button class="btn btn-primary" type="submit">Guardar Cambios</button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        [...tooltipTriggerList].forEach(el => new bootstrap.Tooltip(el));
+        const form = document.getElementById("form_agregar");
+
+        form.addEventListener("submit", (event) => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            form.classList.add("was-validated");
+        });
+    });
+</script>
+{% endblock %}

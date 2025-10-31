@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block titulo %}
+    <title>Cesta Mágica | Panel de Gestión</title>
+{% endblock %}
+
+{% block css %}
+<style>
+    .low-stock { color: red; }
+    .sufficient-stock { color: green; }
+    .gap-2 { gap: 0.5rem; }
+    /* Estilo mejorado para Nav Tabs */
+.nav-tabs .nav-link {
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.75rem 1.5rem;
+    color: #495057;
+    border: none;
+    border-bottom: 3px solid transparent;
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #0d6efd; /* Bootstrap primary */
+    border-bottom: 3px solid #0d6efd;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    border-bottom: 3px solid #0d6efd;
+    background-color: transparent;
+    font-weight: 700;
+}
+
+/* Tabla Pedidos */
+.table-pedidos thead th {
+    background-color: #0d6efd;
+    color: white;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table-pedidos tbody td {
+    vertical-align: middle;
+}
+
+.table-pedidos tbody tr:hover {
+    background-color: #f1f9ff;
+}
+
+/* Filtros pedidos */
+.filtros-pedidos {
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.filtros-pedidos .form-select,
+.filtros-pedidos .form-control {
+    max-width: 180px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Bienvenido {{ request.user.username }}</h4>
+        <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar sesión</a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Nav Tabs -->
+    <ul class="nav nav-tabs" id="gestionTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="productos-tab" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab" aria-controls="productos" aria-selected="true">
+                Productos
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pedidos-tab" data-bs-toggle="tab" data-bs-target="#pedidos" type="button" role="tab" aria-controls="pedidos" aria-selected="false">
+                Pedidos
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="config-tab" data-bs-toggle="tab" data-bs-target="#config" type="button" role="tab" aria-controls="config" aria-selected="false">
+                Marcas & Categorías
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content pt-3" id="gestionTabsContent">
+        <!-- Productos -->
+        <div class="tab-pane fade show active" id="productos" role="tabpanel" aria-labelledby="productos-tab">
+            <div class="d-flex justify-content-between mb-2">
+                <h5>Productos</h5>
+                <a href="{% url 'agregar_producto' %}" class="btn btn-primary">Agregar producto</a>
+            </div>
+
+            <form method="GET" action="{% url 'gestion' %}" class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Buscar producto..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="marca" class="form-select">
+                        <option value="">Filtrar por marca</option>
+                        {% for marca in marcas %}
+                            <option value="{{ marca.id }}" {% if marca.id|stringformat:"s" == request.GET.marca %}selected{% endif %}>{{ marca.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="categoria" class="form-select">
+                        <option value="">Filtrar por categoría</option>
+                        {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == request.GET.categoria %}selected{% endif %}>{{ categoria.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2 justify-content-end">
+                    <button type="submit" class="btn btn-success">Buscar</button>
+                    <a href="{% url 'gestion' %}" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Categoría</th>
+                            <th>Marca</th>
+                            <th>Stock</th>
+                            <th colspan="2" class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto in productos %}
+                        <tr>
+                            <td>{{ producto.id_tienda }}</td>
+                            <td>{{ producto.nombre }}</td>
+                            <td>{{ producto.precio }}</td>
+                            <td>{{ producto.categoria }}</td>
+                            <td>{{ producto.marca }}</td>
+                            <td>
+                                <span class="{% if producto.stock < 10 %}low-stock{% else %}sufficient-stock{% endif %}">{{ producto.stock }}</span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'editar_producto' producto.id %}" class="btn btn-warning btn-sm">Editar</a>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'eliminar_producto' producto.id %}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar producto?');">Eliminar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pedidos -->
+        <div class="tab-pane fade" id="pedidos" role="tabpanel" aria-labelledby="pedidos-tab">
+
+            <h5>Pedidos Recientes</h5>
+        
+            <form method="GET" action="{% url 'gestion' %}" class="d-flex filtros-pedidos flex-wrap align-items-end">
+                <div class="mb-2">
+                    <label for="estadoFiltro" class="form-label small mb-1">Estado</label>
+                    <select name="estado_pedido" class="form-select form-select-sm">
+                        <option value="" {% if not request.GET.estado_pedido %}selected{% endif %}>Todos</option>
+                        <option value="PAG" {% if request.GET.estado_pedido == "PAG" %}selected{% endif %}>Pagado</option>
+                        <option value="PRE" {% if request.GET.estado_pedido == "PRE" %}selected{% endif %}>En preparación</option>
+                        <option value="RET" {% if request.GET.estado_pedido == "RET" %}selected{% endif %}>Pendiente de retiro</option>
+                        <option value="ENT" {% if request.GET.estado_pedido == "ENT" %}selected{% endif %}>Entregado</option>
+                        <option value="CAN" {% if request.GET.estado_pedido == "CAN" %}selected{% endif %}>Cancelado</option>
+                      </select>
+                </div>        
+                <!-- filtro fecha desde -->
+                <div class="mb-2">
+                    <label for="fechaDesde" class="form-label small mb-1">Desde</label>
+                    <input type="date" id="fechaDesde" name="fecha_desde" value="{{ request.GET.fecha_desde }}" class="form-control form-control-sm">
+                </div>
+        
+                <!-- filtro fecha hasta -->
+                <div class="mb-2">
+                    <label for="fechaHasta" class="form-label small mb-1">Hasta</label>
+                    <input type="date" id="fechaHasta" name="fecha_hasta" value="{{ request.GET.fecha_hasta }}" class="form-control form-control-sm">
+                </div>
+        
+                <div class="mb-2">
+                    <button type="submit" class="btn btn-primary btn-sm">Aplicar</button>
+                    <a href="{% url 'gestion' %}" class="btn btn-secondary btn-sm ms-2">Limpiar</a>
+                </div>
+            </form>
+        
+            <div class="table-responsive">
+                <table class="table table-bordered table-pedidos">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                            <th class="text-center">Actualizar Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td>{{ pedido.codigo_pedido }}</td>
+                            <td>{{ pedido.usuario.username }}</td>
+                            <td>{{ pedido.fecha|date:"Y-m-d H:i" }}</td>
+                            <td>{{ pedido.estado }}</td>
+                            <td class="text-end">${{ pedido.total }}</td>
+                            <td class="text-center">
+                                <form method="POST" action="{% url 'actualizar_estado_pedido' pedido.id %}" class="d-inline-flex align-items-center gap-2">
+                                    {% csrf_token %}
+                                    <select name="estado" class="form-select form-select-sm d-inline w-auto">
+                                        <option value="PAG" {% if pedido.estado == "PAG" %}selected{% endif %}>Pagado</option>
+                                        <option value="PRE" {% if pedido.estado == "PRE" %}selected{% endif %}>En preparación</option>
+                                        <option value="RET" {% if pedido.estado == "RET" %}selected{% endif %}>Pendiente de retiro</option>
+                                        <option value="ENT" {% if pedido.estado == "ENT" %}selected{% endif %}>Entregado</option>
+                                        <option value="CAN" {% if pedido.estado == "CAN" %}selected{% endif %}>Cancelado</option>
+                                      </select>
+                                    <button type="submit" class="btn btn-sm btn-primary">Actualizar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay pedidos que coincidan con los filtros.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        
+        </div>
+        
+        <!-- Configuración Marcas & Categorías -->
+        <div class="tab-pane fade" id="config" role="tabpanel" aria-labelledby="config-tab">
+            <div class="row">
+                <!-- Marcas -->
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Marcas</h5>
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarMarca">
+                            <i class="bi bi-plus-circle-fill"></i> Nueva Marca
+                        </button>
+                    </div>
+                    <ul class="list-group">
+                        {% for marca in marcas %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ marca.nombre }}
+                            <div>
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editarMarcaModal{{ marca.id }}">Editar</button>
+                                <a href="{% url 'eliminar_marca' marca.id %}" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar marca?');">Eliminar</a>
+                            </div>
+                        </li>
+
+                        <!-- Modal editar marca -->
+                        <div class="modal fade" id="editarMarcaModal{{ marca.id }}" tabindex="-1" aria-labelledby="editarMarcaLabel{{ marca.id }}" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <form method="POST" action="{% url 'editar_marca' marca.id %}">
+                              {% csrf_token %}
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title" id="editarMarcaLabel{{ marca.id }}">Editar Marca</h5>
+                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body">
+                                  <input type="text" class="form-control" name="nombre" value="{{ marca.nombre }}" required>
+                                </div>
+                                <div class="modal-footer">
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                </div>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Modal agregar marca -->
+                    <div class="modal fade" id="modalAgregarMarca" tabindex="-1" aria-labelledby="modalAgregarMarcaLabel" aria-hidden="true">
+                      <div class="modal-dialog">
+                        <form method="POST" action="{% url 'agregar_marca' %}">
+                          {% csrf_token %}
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="modalAgregarMarcaLabel">Agregar Nueva Marca</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                              <input type="text" name="nombre" class="form-control" placeholder="Nombre de la marca" required>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                              <button type="submit" class="btn btn-primary">Agregar</button>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                </div>
+
+                <!-- Categorías -->
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Categorías</h5>
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarCategoria">
+                            <i class="bi bi-plus-circle-fill"></i> Nueva Categoría
+                        </button>
+                    </div>
+                    <ul class="list-group">
+                        {% for categoria in categorias %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ categoria.nombre }}
+                            <div>
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editarCategoriaModal{{ categoria.id }}">Editar</button>
+                                <a href="{% url 'eliminar_categoria' categoria.id %}" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar categoría?');">Eliminar</a>
+                            </div>
+                        </li>
+
+                        <!-- Modal editar categoría -->
+                        <div class="modal fade" id="editarCategoriaModal{{ categoria.id }}" tabindex="-1" aria-labelledby="editarCategoriaLabel{{ categoria.id }}" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <form method="POST" action="{% url 'editar_categoria' categoria.id %}">
+                              {% csrf_token %}
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title" id="editarCategoriaLabel{{ categoria.id }}">Editar Categoría</h5>
+                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body">
+                                  <input type="text" class="form-control" name="nombre" value="{{ categoria.nombre }}" required>
+                                </div>
+                                <div class="modal-footer">
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                                </div>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Modal agregar categoría -->
+                    <div class="modal fade" id="modalAgregarCategoria" tabindex="-1" aria-labelledby="modalAgregarCategoriaLabel" aria-hidden="true">
+                      <div class="modal-dialog">
+                        <form method="POST" action="{% url 'agregar_categoria' %}">
+                          {% csrf_token %}
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="modalAgregarCategoriaLabel">Agregar Nueva Categoría</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                              <input type="text" name="nombre" class="form-control" placeholder="Nombre de la categoría" required>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                              <button type="submit" class="btn btn-primary">Agregar</button>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabLinks = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabLinks.forEach(function (tab) {
+            tab.addEventListener("shown.bs.tab", function (e) {
+                localStorage.setItem("activeGestionTab", e.target.getAttribute("data-bs-target"));
+            });
+        });
+
+        const activeTab = localStorage.getItem("activeGestionTab");
+        if (activeTab) {
+            const someTabTriggerEl = document.querySelector(`button[data-bs-target="${activeTab}"]`);
+            if (someTabTriggerEl) {
+                new bootstrap.Tab(someTabTriggerEl).show();
+            }
+        }
+    });
+</script>
+{% endblock %}

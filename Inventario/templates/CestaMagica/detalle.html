@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load static %}
+{% block css %}
+<style>
+
+  .card {
+    padding: 15px;
+    border-color: var(--color-brown-light);
+  }
+
+  .card img {
+    object-fit: contain;
+    height: 60vh;
+    width: 100%;
+  }
+
+  .price {
+    color: var(--color-green-dark);
+    font-weight: bold;
+  }
+
+  .card .card-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .card-text {
+    font-size: 1.1rem;
+  }
+
+  .btn-outline-secondary {
+    color: var(--color-red-dark);
+    border-color: var(--color-red-dark);
+  }
+
+  .btn-outline-secondary:hover {
+    background-color: var(--color-red-dark);
+    color: white;
+  }
+  .custom-toast {
+    min-width: 220px;
+    max-width: 300px;
+    margin-bottom: 10px;
+    padding: 12px 16px;
+    color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    animation: slideIn 0.4s ease, fadeOut 0.4s ease 2.8s forwards;
+  }
+  
+  .custom-toast.success { background-color: #28a745; }     /* verde */
+  .custom-toast.danger { background-color: #dc3545; }      /* rojo */
+  .custom-toast.info { background-color: #0d6efd; }        /* azul */
+  .custom-toast.warning { background-color: #ffc107; color: #333; }  /* amarillo */
+  
+  .custom-toast i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(100%); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateX(100%); }
+  }
+</style>
+{% endblock css %}
+
+{% block titulo %}
+  <title>Cesta Mágica | {{ producto.nombre }}</title>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-lg border-2">
+        <img 
+          src="{{ producto.imagen.url }}" 
+          class="img-fluid rounded" 
+          alt="{{ producto.nombre }}" 
+        />
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <div class="card shadow-lg mb-3">
+        <div class="card-body">
+          <h2 class="card-title mb-3">{{ producto.nombre }}</h2>
+
+          {% if producto.is_available %}
+            <h4 class="mb-3">
+              <strong class="price">Precio:</strong>
+            </h4>
+            <h6 class="mb-3">
+              <strong class="price">$ {{producto.precio}}</strong>
+            </h6>
+          {% else %}
+            <h4 class="mb-3 text-danger fw-bold">
+              Sin Stock
+            </h4>
+          {% endif %}
+
+          <p class="card-text text-muted mb-1">{{ producto.descripcion }}</p>
+          
+          <p class="card-text mt-1">
+            <small style="color: var(--color-blue-light);">
+              Stock Disponible: {{ producto.stock_vendible }}
+            </small>
+          </p>
+        </div>
+      </div>
+
+      {% if producto.is_available %}
+        <div class="d-flex align-items-center my-3" id="quantity-controls">
+          <button class="btn btn-outline-secondary btn-sm" id="decrease-btn">-</button>
+          <span class="mx-3 fw-bold" id="selected-quantity">1</span>
+          <button class="btn btn-outline-secondary btn-sm" id="increase-btn">+</button>
+        </div>
+        
+        <button class="btn btn-primary w-100" id="confirm-add-btn" data-product-id="{{ producto.id }}">
+          Agregar al carrito
+        </button>
+      {% else %}
+        <button class="btn btn-secondary w-100" disabled>
+          Producto no disponible
+        </button>
+      {% endif %}
+      
+      <a href="{{ referer }}" class="btn btn-outline-secondary w-100 mt-2">
+        ← Volver a productos
+      </a>
+      
+      <p class="text-muted mt-2">
+        Ya tienes <span id="current-in-cart">0</span> en el carrito.
+      </p>
+      <div id="custom-toast-container" style="position: fixed; bottom: 5rem; right: 1.5rem; z-index: 9999;"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+  let selectedQuantity = 1;
+  const maxStock = {{ producto.stock }};
+  const productId = {{ producto.id }};
+
+  function updateQuantityDisplay() {
+    $("#selected-quantity").text(selectedQuantity);
+  }
+
+  $("#increase-btn").click(function() {
+    if (selectedQuantity < maxStock) {
+      selectedQuantity++;
+      updateQuantityDisplay();
+    }
+  });
+
+  $("#decrease-btn").click(function() {
+    if (selectedQuantity > 1) {
+      selectedQuantity--;
+      updateQuantityDisplay();
+    }
+  });
+
+  $("#confirm-add-btn").click(function() {
+    $.ajax({
+      url: "{% url 'cart:add_to_cart' 0 %}".replace("0", productId),
+      type: "POST",
+      data: {
+        csrfmiddlewaretoken: '{{ csrf_token }}',
+        cantidad: selectedQuantity
+      },
+      success: function(response) {
+        const item = response.cart_items.find(i => i.product_id === productId);
+        $("#current-in-cart").text(item ? item.quantity : 0);
+        updateCartBadge(response.total_items);
+        showToast({ message: "Producto agregado al carrito", type: "success" });
+      },
+      error: function() {
+        showToast("Error al agregar el producto", "danger");
+      }      
+    });
+  });
+
+  $(document).ready(function() {
+    $.get("{% url 'cart:get_cart_state' %}", function(response) {
+      const item = response.cart_items.find(i => i.product_id === productId);
+      $("#current-in-cart").text(item ? item.quantity : 0);
+      updateCartBadge(response.total_items);
+    });
+  });
+</script>
+
+{% endblock js %}

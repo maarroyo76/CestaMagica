@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block titulo %}<title>Error 404</title>{% endblock %}
+
+
+{% block content %}
+<div class="container py-5 text-center">
+    <h1 class="display-4">404 - Página no encontrada</h1>
+    <p class="lead">Lo sentimos, la página que buscas no existe.</p>
+    <a href="{% url 'productos' %}" class="btn btn-primary mt-3">Volver a la tienda</a>
+    <a href="{% url 'cart:cart_detail' %}" class="btn btn-secondary mt-3">Ver carrito</a>
+</div>
+{% endblock %}

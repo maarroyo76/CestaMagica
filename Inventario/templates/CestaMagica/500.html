@@ -1,0 +1,12 @@
+{% extends ".html" %}
+
+{% load humanize %}
+
+{% block titulo %}<title>Error 500</title>{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <h1 class="display-4">500 - Error interno del servidor</h1>
+    <p class="lead">Lo sentimos, algo salió mal en el servidor.</p>
+</div>
+{% endblock %}

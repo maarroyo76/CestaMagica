@@ -1,0 +1,53 @@
+{% extends "base.html"%}
+{% load static %}
+
+
+{% block titulo %}
+    <title>Cesta Magica | Login</title>
+{% endblock  %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-4 mt-5">
+            <h1 class="text-center mb-4">
+                Inicio de Sesion
+            </h1>
+            <div class="card">
+                <div class="card-body">
+                    <form id="form_login" method="POST" novalidate>
+                        {% csrf_token %}
+                        {% if error %}
+                            <small class="text-danger">{{ error }}</small>
+                        {% endif %}
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre de Usuario</label>
+                            <input type="text" class="form-control" name="user" id="user" required />
+                            <div class="invalid-feedback">
+                                Por favor, ingresa un usuario valido.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pass" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" name="pass" id="pass" required />
+                            <div class="invalid-feedback">
+                                Por favor, ingresa una contraseña valida.
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            ¿No tienes cuenta? <a href="{% url 'registro' %}">Registrate</a>
+                        </div>
+                        <div class="d-grid">
+                            <button class="btn btn-primary" type="submit">Iniciar Sesion</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'Login.js' %}"></script>
+{% endblock %}

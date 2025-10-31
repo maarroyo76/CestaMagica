@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block titulo %}
+  <title>Cesta Magica | Catálogo</title>
+{% endblock %}
+
+{% block css %}
+<style>
+  :root {
+    --color-yellow-light: #f6eca9;
+    --color-green-dark: #477c3b;
+    --color-pink-bright: #cc479a;
+    --color-blue-light: #6bbfdf;
+    --color-brown-light: #c38855;
+    --color-red-dark: #bd403a;
+  }
+
+  .card-img-container {
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .card-img-top {
+    object-fit: contain;
+    width: 100%;
+    max-height: 100%;
+  }
+
+  .price {
+    font-size: 0.9rem;
+  }
+
+  .card {
+    border: 1px solid var(--color-brown-light);
+  }
+
+  .card:hover {
+    box-shadow: 0 0 10px var(--color-blue-light);
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+  }
+
+  /* Estilo para enlaces dentro de las tarjetas */
+  .card a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .card a:hover {
+    color: var(--color-pink-bright);
+    text-decoration: none;
+  }
+
+  .btn-success {
+    background-color: var(--color-green-dark);
+    border-color: var(--color-green-dark);
+  }
+
+  .btn-success:hover {
+    background-color: var(--color-pink-bright);
+    border-color: var(--color-pink-bright);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-blue-light);
+    border-color: var(--color-blue-light);
+    color: var(--color-yellow-light);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-green-dark);
+    border-color: var(--color-green-dark);
+    color: var(--color-yellow-light);
+  }
+
+  .form-control {
+    border-color: var(--color-brown-light);
+  }
+
+  .form-control:focus {
+    border-color: var(--color-blue-light);
+    box-shadow: 0 0 0 0.2rem rgba(107, 191, 223, 0.25);
+  }
+
+  h1 {
+    color: var(--color-green-dark);
+  }
+
+  .text-primary {
+    color: var(--color-red-dark) !important;
+  }
+
+  .pagination {
+    --bs-pagination-color: var(--color-green-dark);
+    --bs-pagination-hover-color: var(--color-pink-bright);
+    --bs-pagination-focus-box-shadow: 0 0 0 0.2rem rgba(204, 71, 154, 0.3);
+    --bs-pagination-active-bg: var(--color-pink-bright);
+    --bs-pagination-active-border-color: var(--color-pink-bright);
+    --bs-pagination-bg: var(--color-yellow-light);
+    --bs-pagination-border-color: var(--color-brown-light);
+  }
+  
+  .page-item .page-link {
+    color: var(--color-green-dark);
+    border: 1px solid var(--color-brown-light);
+    border-radius: 0.5rem;
+    margin: 0 2px;
+    transition: all 0.2s ease;
+  }
+  
+  .page-item .page-link:hover {
+    background-color: var(--color-blue-light);
+    color: white;
+    border-color: var(--color-blue-light);
+  }
+  
+  .page-item.active .page-link {
+    background-color: var(--color-pink-bright);
+    border-color: var(--color-pink-bright);
+    color: white;
+  }
+  
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Catálogo de Productos</h1>
+    <form method="GET" action="{% url 'productos' %}" class="row g-3 mb-5">
+      <div class="col-md-4">
+        <input type="text" name="search" class="form-control" placeholder="Buscar producto..." value="{{ search_query }}">
+      </div>
+      <div class="col-md-2">
+        <select name="categoria" class="form-select">
+          <option value="">Filtrar por categoría</option>
+          {% for categoria in categorias %}
+            <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == selected_categoria %}selected{% endif %}>
+              {{ categoria.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="marca" class="form-select">
+          <option value="">Filtrar por marca</option>
+          {% for marca in marcas %}
+            <option value="{{ marca.nombre }}" {% if marca.nombre == selected_marca %}selected{% endif %}>
+              {{ marca.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="orden" class="form-select">
+          <option value="nombre" {% if orden == "nombre" %}selected{% endif %}>Ordenar por nombre (A-Z)</option>
+          <option value="nombre_desc" {% if orden == "nombre_desc" %}selected{% endif %}>Ordenar por nombre (Z-A)</option>
+          <option value="precio_asc" {% if orden == "precio_asc" %}selected{% endif %}>Ordenar por precio (menor a mayor)</option>
+          <option value="precio_desc" {% if orden == "precio_desc" %}selected{% endif %}>Ordenar por precio (mayor a menor)</option>
+        </select>
+      </div>
+      <div class="col-md-2 text-end d-flex justify-content-end gap-2">
+        <button type="submit" class="btn btn-success">Buscar</button>
+        <a href="{% url 'productos' %}" class="btn btn-secondary">Limpiar</a>
+      </div>
+    </form>
+
+    {% if productos %}
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for producto in productos %}
+          <div class="col mb-3 mt-4">
+            <div class="card h-100">
+              {% if producto.is_available %}
+                <a href="{% url 'detalle_producto' producto.id %}" class="stretched-link text-decoration-none">
+                  <div class="card-img-container">
+                      <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
+                  </div>
+                  <div class="card-body">
+                    <h6 class="card-title text-truncate">{{ producto.nombre }}</h6>
+                    <p class="card-text text-truncate">
+                      {{ producto.descripcion|truncatechars:50 }}
+                    </p>
+                    <p class="card-text text-primary">
+                      <strong class="price" data-raw-price="{{ producto.precio }}">
+                        ${{ producto.precio|floatformat:0|intcomma }}
+                      </strong>
+                    </p>
+                  </div>
+                </a>
+              {% else %}
+                <div class.="text-decoration-none">
+                  <div class="card-img-container">
+                      <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}" style="filter: grayscale(80%); opacity: 0.6;">
+                  </div>
+                  <div class="card-body">
+                    <h6 class="card-title text-truncate">{{ producto.nombre }}</h6>
+                    <p class="card-text text-truncate">
+                      {{ producto.descripcion|truncatechars:50 }}
+                    </p>
+                    <p class="card-text text-danger fw-bold">
+                      Sin Stock
+                    </p>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <h3 class="text-center mt-10">No se encontraron productos que coincidan con la búsqueda.</h3>
+    {% endif %}
+
+    <nav aria-label="Paginación de productos" class="mt-3 mb-5">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if selected_categoria %}categoria={{ selected_categoria }}&{% endif %}{% if selected_marca %}marca={{ selected_marca }}&{% endif %}orden={{ orden }}&page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+        {% endif %}
+    
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if selected_categoria %}categoria={{ selected_categoria }}&{% endif %}{% if selected_marca %}marca={{ selected_marca }}&{% endif %}orden={{ orden }}&page={{ num }}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+    
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if selected_categoria %}categoria={{ selected_categoria }}&{% endif %}{% if selected_marca %}marca={{ selected_marca }}&{% endif %}orden={{ orden }}&page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        {% endif %}
+      </ul>
+    </nav>    
+</div>
+{% endblock %}
+
+{% block js %}
+
+{% endblock %}``

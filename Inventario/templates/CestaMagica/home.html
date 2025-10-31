@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}
+  <title>Cesta Mágica | Inicio</title>
+{% endblock %}
+
+{% block css %}
+<style>
+:root {
+    --color-yellow-light: #f6eca9;
+    --color-green-dark: #477c3b;
+    --color-pink-bright: #cc479a;
+    --color-blue-light: #6bbfdf;
+    --color-brown-light: #c38855;
+    --color-red-dark: #bd403a;
+}
+
+.hero {
+    background-size: cover;
+    background-position: center;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+.hero p {
+    font-size: 1.25rem;
+}
+
+.hero .btn {
+    margin-top: 20px;
+}
+
+.product-card {
+    border: 1px solid var(--color-brown-light);
+}
+
+.product-card:hover {
+    box-shadow: 0 0 10px var(--color-blue-light);
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+}
+
+.product-card a {
+    color: inherit;
+    text-decoration: none;
+    weight: bold;
+
+}
+
+.product-card a:hover {
+    color: var(--color-pink-bright);
+    text-decoration: none;
+    weight: bold;
+}
+
+.product-card .card-img-container {
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.product-card .card-img-top {
+    object-fit: contain;
+    width: 100%;
+    max-height: 100%;
+}
+
+.benefits .icon {
+    font-size: 2rem;
+    color: var(--color-green-dark);
+}
+
+h1 {
+    color: var(--color-green-dark);
+}
+
+h2 {
+    color: var(--color-brown-light);
+}
+
+.text-primary {
+    color: var(--color-red-dark) !important;
+}
+
+.btn-success {
+    background-color: var(--color-green-dark);
+    border-color: var(--color-green-dark);
+}
+
+.btn-success:hover {
+    background-color: var(--color-pink-bright);
+    border-color: var(--color-pink-bright);
+}
+
+.btn-outline-success {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.carousel {
+    height: 40%;
+    position: relative;
+    margin-top: 30px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    
+}
+
+.carousel-inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.carousel-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    padding: 10px;
+}
+
+.carousel-indicators [data-bs-target] {
+    background-color: var(--color-green-dark);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.carousel-indicators [data-bs-target].active {
+    background-color: var(--color-pink-bright);
+    transform: scale(1.2);
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero mt-5">
+  <h1>Bienvenidos a Cesta Mágica</h1>
+  <p>Encuentra los mejores productos a precios increíbles.</p>
+</div>
+
+<div class="container">
+  <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <a href="{% url 'productos' %}?marca=Confites Mabu">
+          <img src="{% static 'images/Mabu-banner.jpg' %}" class="d-block w-100" alt="Banner Mabu">
+        </a>
+      </div>
+      <div class="carousel-item">
+        <a href="{% url 'productos' %}?marca=McKay">
+          <img src="{% static 'images/McKay-banner.jpg' %}" class="d-block w-100" alt="Banner McKay">
+        </a>
+      </div>
+      <div class="carousel-item">
+        <a href="{% url 'productos' %}?marca=CCU">
+          <img src="{% static 'images/CCU-banner.jpg' %}" class="d-block w-100 h-100" alt="Banner CCU">
+        </a>
+      </div>
+      <div class="carousel-item">
+        <a href="{% url 'productos' %}?marca=Andina">
+          <img src="{% static 'images/Cola-banner.jpg' %}" class="d-block w-100" alt="Banner Cola">
+        </a>
+      </div>
+      <div class="carousel-item">
+        <a href="{% url 'productos' %}?marca=Fruna">
+          <img src="{% static 'images/Fruna-banner.jpg' %}" class="d-block w-100" alt="Banner Fruna">
+        </a>
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>
+
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Productos Destacados</h2>
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for producto in productos_destacados %}
+    <div class="col">
+      <div class="card product-card">
+        <div class="card-img-container">
+          <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
+        </div>
+        <div class="card-body">
+          <h5 class="card-title text-truncate">{{ producto.nombre }}</h5>
+          <p class="card-text text-truncate">{{ producto.descripcion|truncatechars:50 }}</p>
+          <p class="card-text text-primary">
+            <strong class="price" data-raw-price="{{ producto.precio }}">
+            </strong>
+          </p>
+          <a href="{% url 'detalle_producto' producto.id %}" class="btn btn-outline-success">Ver Más</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="container mt-5">
+  <h2 class="text-center mb-4">¿Por qué elegirnos?</h2>
+  <div class="row text-center benefits">
+    <div class="col-md-4">
+      <i class="bi bi-truck icon"></i>
+      <h5>Envíos rápidos</h5>
+      <p>Entrega garantizada en 24-48 horas.</p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-star icon"></i>
+      <h5>Productos de calidad</h5>
+      <p>Solo trabajamos con las mejores marcas.</p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-shield-check icon"></i>
+      <h5>Compra segura</h5>
+      <p>Protegemos tus datos y tus transacciones.</p>
+    </div>
+  </div>
+</div>
+
+<div class="container text-center mt-5">
+  <h3>¡Empieza a comprar ahora!</h3>
+  <a href="{% url 'productos' %}" class="btn btn-success btn-lg mb-4">Ver todos los productos</a>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'JS/Precios.js' %}"></script>
+{% endblock %}

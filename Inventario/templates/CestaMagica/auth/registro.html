@@ -1,0 +1,70 @@
+{% extends "base.html"%}
+{% load static %}
+{% load form_extras %} 
+{% block titulo %}
+    <title>Cesta Magica | Registro</title>
+{% endblock  %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5 mt-5">
+            <h1 class="text-center mb-4">
+                Crear Cuenta
+            </h1>
+            <div class="card mb-5">
+                <div class="card-body">
+                    <form id="form_registro" method="POST" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {% for field in form %}
+                            
+                            {% if field.name == 'telefono' %}
+                                <div class="mb-3">
+                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+56 9</span>
+                                        {{ field|add_class:"form-control" }}
+                                        <div class="invalid-feedback">
+                                            Por favor, ingresa un número válido con 8 dígitos.
+                                        </div>
+                                    </div>
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                            {% else %}
+                                <div class="mb-3">
+                                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                    {{ field|add_class:"form-control" }}
+                                    
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        <div class="d-grid">
+                            <button class="btn btn-primary" type="submit">Registrarse</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'JS/Registro.js' %}"></script>
+{% endblock %}

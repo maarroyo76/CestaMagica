@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet"/>
+
+    <link rel="stylesheet" href="{% static 'CSS/style.css' %}" />
+
+    <style>
+      #navbar-cart-count {
+        position: absolute;
+        top: 0;
+        right: 0;
+        transform: translate(50%, -50%);
+        background-color: #cc479a;
+        color: white;
+        padding: 0.2em 0.5em;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 9999px; /* círculo */
+        min-width: 1.3em;
+        text-align: center;
+        line-height: 1;
+        pointer-events: none; /* para que no moleste al clic */
+        display: none; /* oculto por defecto, se muestra con JS */
+        z-index: 1000;
+        user-select: none;
+        box-shadow: 0 0 3px rgba(0,0,0,0.3);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+      #cart-icon {
+        position: relative;
+        display: inline-block;
+      }
+    </style>
+
+    {% block css %}
+    {% endblock %}
+    {% block titulo %}{% endblock %}
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">
+          <img src="{% static 'Logo.png' %}" alt="Logo" style="height: 75px; width: auto; margin-right: 10px"/>
+          Cesta Mágica
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <form class="d-flex mx-auto w-100" role="search" action="{% url 'productos' %}" method="GET">
+              {% csrf_token %}
+              <input class="form-control me-2" style="max-width: 85%;" type="search" name="search" placeholder="Buscar productos..." aria-label="Search" value="{{ request.GET.search|default:'' }}">
+              <button class="btn btn-outline-warning" type="submit">Buscar</button>
+          </form>
+        
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              {% if not perfil %}
+                <a class="nav-link" href="{% url 'iniciar_sesion' %}">
+                  <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                </a>
+              {% else %}
+                <a class="nav-link" href="{% url 'perfil' %}">
+                  <i class="bi bi-person-circle"></i> Perfil
+                </a>
+              {% endif %}
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'productos' %}">
+                <i class="bi bi-bag"></i> Productos
+              </a>
+            </li>
+            <li class="nav-item position-relative">
+              <a class="nav-link" href="{% url 'cart:cart_detail' %}">
+                <div id="cart-icon">
+                  <i class="bi bi-cart"></i> Carrito
+                  <span id="navbar-cart-count">3</span>
+                </div> 
+              </a>
+            </li>            
+            {% if perfil == 'admin' or perfil == 'staff' %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'gestion' %}">
+                  <i class="bi bi-gear"></i> Gestión
+                </a>
+              </li>
+            {% endif %}
+          </ul>          
+        </div>
+      </div>
+    </nav>
+
+    <main class="content">{% block content %}{% endblock %}</main>
+
+   <div id="custom-toast-container" style="position: fixed; bottom: 5rem; right: 1.5rem; z-index: 9999;"></div>
+
+    <footer class="footer mt-auto">
+      <p>&copy; 2025 Cesta Mágica</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script src="{% static 'JS/main.js' %}"></script>
+
+    <script>
+      $(document).ready(function() {
+        $.get("{% url 'cart:get_cart_state' %}", function(response) {
+          let count = response.total_items;
+          updateCartBadge(count);
+        });
+      });
+    </script>
+    
+    {% block js %}
+    {% endblock %}
+
+  </body>
+</html>
