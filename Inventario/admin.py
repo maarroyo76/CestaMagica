@@ -5,9 +5,10 @@ from .models import Producto, Categoria, Marca, userProfile
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'stock', 'categoria', 'marca')
+    list_display = ('id_tienda', 'nombre', 'stock', 'categoria', 'marca')
     list_filter = ('categoria', 'marca')
     search_fields = ('nombre', 'descripcion')
+    ordering = ('nombre',)
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):

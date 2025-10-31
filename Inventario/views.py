@@ -1,4 +1,7 @@
-from django.http import HttpResponseBadRequest, JsonResponse
+from io import BytesIO
+import os
+import zipfile
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib import messages
@@ -7,7 +10,10 @@ from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.core.paginator import Paginator
+from django.core.files.images import ImageFile
 from django.utils.dateparse import parse_date
+import openpyxl
+from Cart.cart import Cart
 
 from .models import Producto, Categoria, Marca, userProfile
 from .decorators import role_required
@@ -69,6 +75,30 @@ def productos(request):
         'page_obj': page_obj,
     }
     return render(request, 'CestaMagica/productos.html', context)
+
+def search_autocomplete(request):
+    """
+    Vista para la búsqueda en vivo del navbar.
+    Devuelve resultados de productos en formato JSON.
+    """
+    if 'term' in request.GET:
+        term = request.GET.get('term')
+        qs = Producto.objects.filter(nombre__icontains=term)
+        
+        qs = qs[:5]
+        
+        productos = []
+        for producto in qs:
+            productos.append({
+                'id': producto.id,
+                'nombre': producto.nombre,
+                'url': reverse('detalle_producto', args=[producto.id]),
+                'imagen': producto.imagen.url,
+                'precio': producto.precio,
+            })
+            
+        return JsonResponse(productos, safe=False)
+    return JsonResponse([], safe=False)
 
 @role_required('admin', 'staff')
 def gestion(request):
@@ -374,3 +404,219 @@ def error_400_view(request, exception):
         'perfil': perfil,
     }
     return render(request, 'CestaMagica/400.html', status=400, context=context)
+
+
+@role_required('admin', 'staff', 'cliente')
+def historial_pedidos(request):
+    perfil = request.session.get('perfil')
+    pedidos = Pedido.objects.filter(
+        usuario=request.user
+    ).prefetch_related(
+        'items__producto').order_by('-fecha')
+
+    context = {
+        'perfil': perfil,
+        'pedidos': pedidos
+    }
+    return render(request, 'CestaMagica/historial_pedidos.html', context)
+
+
+@role_required('admin', 'staff', 'cliente')
+@require_POST
+def recomprar_pedido(request, pedido_id):
+    cart = Cart(request)
+    
+    pedido_original = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+
+    productos_agregados = []
+    productos_omitidos = []
+
+    for item in pedido_original.items.all():
+        producto = item.producto
+        cantidad = item.cantidad
+
+        if producto.is_available and producto.stock_vendible >= cantidad:
+            cart.add(producto, cantidad)
+            productos_agregados.append(producto.nombre)
+        else:
+            productos_omitidos.append(producto.nombre)
+    
+    if productos_agregados:
+        messages.success(request, f"Se agregaron al carrito los productos del pedido {pedido_original.codigo_pedido}.")
+    
+    if productos_omitidos:
+        nombres_omitidos = ", ".join(productos_omitidos)
+        messages.warning(request, f"No se pudieron agregar: {nombres_omitidos} (sin stock suficiente).")
+
+    return redirect('cart:cart_detail')
+
+
+@role_required('admin', 'staff')
+def carga_masiva(request):
+    perfil = request.session.get('perfil')
+    
+    if request.method == 'POST':
+        excel_file = request.FILES.get('excel_file')
+        zip_file = request.FILES.get('zip_file')
+
+        if not excel_file:
+            messages.error(request, "Debes subir al menos un archivo Excel.")
+            return redirect('carga_masiva')
+
+        imagenes_zip = {}
+        if zip_file:
+            try:
+                with zipfile.ZipFile(zip_file, 'r') as zf:
+                    for filename in zf.namelist():
+                        if not filename.startswith('__MACOSX'):
+                            nombre_base = os.path.basename(filename)
+                            imagenes_zip[nombre_base] = BytesIO(zf.read(filename))
+            except zipfile.BadZipFile:
+                messages.error(request, "El archivo ZIP está dañado.")
+                return redirect('carga_masiva')
+
+        productos_creados = 0
+        productos_actualizados = 0
+        errores = [] # Para reportar IDs no encontrados
+
+        try:
+            with transaction.atomic():
+                wb = openpyxl.load_workbook(excel_file)
+                sheet = wb.active
+                
+                headers = [str(cell.value) for cell in sheet[1]]
+                headers_lower = [h.lower().strip() for h in headers]
+                
+                try:
+                    # --- 1. AÑADIMOS 'id' A LAS CABECERAS ---
+                    idx_id = headers_lower.index('id') 
+                    idx_id_tienda = headers_lower.index('id_tienda')
+                    idx_nombre = headers_lower.index('nombre')
+                    idx_desc = headers_lower.index('descripcion')
+                    idx_precio = headers_lower.index('precio')
+                    idx_stock = headers_lower.index('stock')
+                    idx_cat = headers_lower.index('categoria')
+                    idx_marca = headers_lower.index('marca')
+                except ValueError as e:
+                    messages.error(request, f"Falta la columna requerida en el Excel: {e}")
+                    return redirect('carga_masiva')
+
+                for row in sheet.iter_rows(min_row=2, values_only=True):
+                    # --- 2. LEEMOS EL ID DE LA BASE DE DATOS ---
+                    db_id = row[idx_id] 
+                    nombre = row[idx_nombre]
+                    
+                    if not nombre: # Si no hay nombre, saltamos la fila
+                        continue
+
+                    # Leemos el resto de los datos
+                    id_tienda = row[idx_id_tienda]
+                    descripcion = row[idx_desc]
+                    precio = int(row[idx_precio])
+                    stock = int(row[idx_stock])
+                    categoria_nombre = row[idx_cat]
+                    marca_nombre = row[idx_marca]
+
+                    categoria, _ = Categoria.objects.get_or_create(nombre=categoria_nombre)
+                    marca, _ = Marca.objects.get_or_create(nombre=marca_nombre)
+
+                    # --- 3. LÓGICA DE ACTUALIZAR O CREAR BASADA EN 'db_id' ---
+                    
+                    if db_id:
+                        # RUTA DE ACTUALIZACIÓN (el ID existe)
+                        try:
+                            producto = Producto.objects.get(id=db_id)
+                            
+                            # Actualizamos todos los campos
+                            producto.id_tienda = id_tienda
+                            producto.nombre = nombre
+                            producto.descripcion = descripcion
+                            producto.precio = precio
+                            producto.stock = stock
+                            producto.categoria = categoria
+                            producto.marca = marca
+                            producto.save() # Guarda todos los cambios
+                            
+                            productos_actualizados += 1
+                        except Producto.DoesNotExist:
+                            errores.append(f"El ID {db_id} ('{nombre}') no existe. Se ignoró esta fila.")
+                    
+                    else:
+                        # RUTA DE CREACIÓN (el ID está en blanco)
+                        # (Opcional: puedes añadir un chequeo de duplicados aquí si quieres)
+                        
+                        producto = Producto.objects.create(
+                            id_tienda=id_tienda,
+                            nombre=nombre,
+                            descripcion=descripcion,
+                            precio=precio,
+                            stock=stock,
+                            categoria=categoria,
+                            marca=marca
+                        )
+                        productos_creados += 1
+                        
+                        # Asignar imagen (solo para productos nuevos)
+                        imagen_encontrada = None
+                        for extension in ['.png', '.jpg', '.jpeg', '.webp']:
+                            if (nombre + extension) in imagenes_zip:
+                                imagen_encontrada = imagenes_zip[nombre + extension]
+                                break
+                        
+                        if imagen_encontrada:
+                            img_file = ImageFile(imagen_encontrada, name=f"{nombre}.png")
+                            producto.imagen = img_file
+                            producto.save(update_fields=['imagen'])
+                        
+            messages.success(request, f"Carga completada: {productos_creados} productos creados, {productos_actualizados} productos actualizados.")
+            if errores:
+                messages.warning(request, "Se encontraron problemas: " + " ".join(errores))
+            
+        except Exception as e:
+            messages.error(request, f"Error al procesar el archivo: {e}. No se guardó ningún cambio.")
+        
+        return redirect('gestion')
+
+    return render(request, 'CestaMagica/Gestion/carga_masiva.html', {'perfil': perfil})
+
+
+@role_required('admin', 'staff')
+def descargar_plantilla_productos(request): # Renombré la función
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Productos"
+
+    # --- AÑADIMOS 'id' A LA PLANTILLA ---
+    headers = ['id_web', 'id_tienda', 'nombre', 'descripcion', 'precio', 'stock', 'categoria', 'marca']
+    ws.append(headers)
+    
+    # Marcamos la columna 'id' como importante
+    for cell in ws[1]:
+        cell.font = openpyxl.styles.Font(bold=True)
+    ws['A1'].font = openpyxl.styles.Font(bold=True, color="FF0000") # ID en rojo
+
+    productos = Producto.objects.select_related('categoria', 'marca').all().order_by('nombre')
+
+    for producto in productos:
+        ws.append([
+            producto.id, # 👈 AÑADIDO
+            producto.id_tienda,
+            producto.nombre,
+            producto.descripcion,
+            producto.precio,
+            producto.stock,
+            producto.categoria.nombre,
+            producto.marca.nombre
+        ])
+
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        buffer,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="plantilla_productos_actual.xlsx"'
+    
+    return response

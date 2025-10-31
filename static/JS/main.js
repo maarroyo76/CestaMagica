@@ -43,3 +43,74 @@ function updateCartBadge(count) {
     $("#navbar-cart-count").fadeOut();
   }
 }
+
+
+
+$(document).ready(function() {
+    
+    const searchInput = $('#navbar-search-input');
+    const resultsContainer = $('#navbar-search-results');
+    let debounceTimer; // Variable para el "debounce"
+
+    searchInput.on('keyup', function() {
+        const searchTerm = $(this).val();
+
+        // Limpiamos el timer anterior
+        clearTimeout(debounceTimer);
+
+        if (searchTerm.length < 2) {
+            // Si la búsqueda es muy corta, no buscamos y ocultamos resultados
+            resultsContainer.empty().hide();
+            return;
+        }
+
+        // --- Pro Tip: Debouncing ---
+        // Esto evita enviar un request por CADA tecla.
+        // Espera 300ms después de que el usuario DEJE de teclear.
+        debounceTimer = setTimeout(function() {
+            // Hacemos la llamada AJAX
+            $.ajax({
+                url: '/search-autocomplete/', // La URL que creamos
+                data: {
+                    'term': searchTerm
+                },
+                dataType: 'json',
+                success: function(data) {
+                    // 1. Limpiamos resultados anteriores
+                    resultsContainer.empty();
+
+                    // 2. Revisamos si hay resultados
+                    if (data.length > 0) {
+                        // 3. Creamos el HTML para cada resultado
+                        data.forEach(function(producto) {
+                            const resultHtml = `
+                                <a href="${producto.url}" class="list-group-item list-group-item-action d-flex align-items-center     justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <img src="${producto.imagen}" alt="${producto.nombre}" style="width: 40px; height: 40px; object-fit: contain; margin-right: 10px;">
+                                        <span>${producto.nombre}</span>
+                                    </div>
+                                    <strong style="color: #477c3b;">
+                                        $${producto.precio.toLocaleString('es-CL')}
+                                    </strong>
+                                </a>
+                            `;
+                            resultsContainer.append(resultHtml);
+                        });
+                        // 4. Mostramos el contenedor
+                        resultsContainer.show();
+                    } else {
+                        // Opcional: mostrar un mensaje de "no se encontró"
+                        resultsContainer.append('<span class="list-group-item">No se encontraron productos.</span>').show();
+                    }
+                }
+            });
+        }, 100); //
+    });
+
+    // Ocultar resultados si el usuario hace clic fuera
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#navbar-search-input').length) {
+            resultsContainer.empty().hide();
+        }
+    });
+});

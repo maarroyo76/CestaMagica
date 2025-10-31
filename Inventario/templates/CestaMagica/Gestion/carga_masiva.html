@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}
+    <title>Cesta Mágica | Carga Masiva</title>
+{% endblock  %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-7">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Carga Masiva de Productos</h4>
+                <a href="{% url 'gestion' %}" class="btn btn-dark">Volver a Gestión</a>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card">
+                <div class="card-body">
+                    
+                    <form method="POST" enctype="multipart/form-data" action="{% url 'carga_masiva' %}">
+                        {% csrf_token %}
+                        
+                        <p class="text-muted">
+                            Para actualizar o crear productos, primero descarga la plantilla actual.
+                            <a href="{% url 'descargar_plantilla' %}" class="btn btn-sm btn-outline-success ms-2">
+                                <i class="bi bi-download"></i> Descargar Plantilla Actual
+                            </a>
+                        </p>
+                        <p class="text-muted small">
+                            El archivo ZIP de imágenes solo se usará para productos <strong>nuevos</strong> (los que no estén en la plantilla). Las imágenes deben tener el mismo nombre que el producto (ej. <code>Producto Nuevo.png</code>).
+                        </p>
+                        
+                        <hr>
+
+                        <div class="mb-3">
+                            <label for="excel_file" class="form-label fs-5">1. Subir Plantilla (.xlsx)</label>
+                            <input class="form-control" type="file" id="excel_file" name="excel_file" 
+                                   accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
+                                   required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="zip_file" class="form-label fs-5">2. Subir Imágenes (.zip) <span class="text-muted fw-normal fs-6">(Opcional)</span></label>
+                            <input class="form-control" type="file" id="zip_file" name="zip_file" 
+                                   accept=".zip, application/zip">
+                        </div>
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-upload"></i> Iniciar Carga y Actualización
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

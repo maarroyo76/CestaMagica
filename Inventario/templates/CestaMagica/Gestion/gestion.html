@@ -67,6 +67,8 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">Bienvenido {{ request.user.username }}</h4>
         <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar sesión</a>
+
+        <a href="{% url 'carga_masiva' %}" class="btn btn-secondary">Carga de Datos</a>
     </div>
 
     {% if messages %}
@@ -78,7 +80,6 @@
         {% endfor %}
     {% endif %}
 
-    <!-- Nav Tabs -->
     <ul class="nav nav-tabs" id="gestionTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="productos-tab" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab" aria-controls="productos" aria-selected="true">

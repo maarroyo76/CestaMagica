@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block titulo %}
+<title>Cesta Mágica | Historial de Compras</title>
+{% endblock %}
+
+{% block css %}
+<style>
+  .pedido-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .pedido-header {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .pedido-body {
+    padding: 1rem;
+    background-color: #fff;
+  }
+  .producto-item {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: 0.5rem 0;
+  }
+  .producto-item:last-child {
+    border-bottom: none;
+  }
+  .producto-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-right: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h1 class="text-center mb-4">Historial de Compras</h1>
+  <div class="align mb-4">
+    <a href="{% url 'perfil' %}" class="btn btn-secondary">&larr; Volver al Perfil</a>
+  </div>
+
+  {% if pedidos %}
+    {% for pedido in pedidos %}
+      <div class="pedido-card">
+        <div class="pedido-header">
+          <div>
+            <h5 class="mb-1">Pedido: {{ pedido.codigo_pedido }}</h5>
+            <small class="text-muted">Fecha: {{ pedido.fecha|date:"d/m/Y H:i" }}</small>
+          </div>
+          <span class="badge bg-primary fs-6">{{ pedido.get_estado_display }}</span>
+        </div>
+        <div class="pedido-body">
+          <h6>Productos:</h6>
+          {% for item in pedido.items.all %}
+            <div class="producto-item">
+              <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}">
+              <div>
+                <strong>{{ item.producto.nombre }}</strong><br>
+                <small class="text-muted">{{ item.cantidad }} x ${{ item.precio_unitario|floatformat:0|intcomma }}</small>
+              </div>
+            </div>
+          {% endfor %}
+          
+          <h5 class="text-end mt-3 mb-3">Total: ${{ pedido.total|floatformat:0|intcomma }}</h5>
+          
+          <form action="{% url 'recomprar_pedido' pedido.id %}" method="POST" class="text-end">
+            {% csrf_token %}
+            <a href="{% url 'pedido:descargar_pdf_pedido' pedido.id %}" class="btn btn-outline-secondary">Descargar PDF</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-bag-plus"></i> Volver a Comprar
+            </button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-center">No tienes pedidos anteriores.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -52,10 +52,18 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarContent">
-          <form class="d-flex mx-auto w-100" role="search" action="{% url 'productos' %}" method="GET">
+          <form class="d-flex mx-auto w-100" role="search" action="{% url 'productos' %}" method="GET" style="position: relative;">
               {% csrf_token %}
-              <input class="form-control me-2" style="max-width: 85%;" type="search" name="search" placeholder="Buscar productos..." aria-label="Search" value="{{ request.GET.search|default:'' }}">
-              <button class="btn btn-outline-warning" type="submit">Buscar</button>
+              
+              <input class="form-control me-2" style="max-width: 85%;" type="search" 
+                     name="search" placeholder="Buscar productos..." aria-label="Search" 
+                     value="{{ request.GET.search|default:'' }}" 
+                     id="navbar-search-input"> <button class="btn btn-outline-warning" type="submit">Buscar</button>
+              
+              <div id="navbar-search-results" 
+                   class="list-group"
+                   style="position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; max-height: 300px; overflow-y: auto;">
+                </div>
           </form>
         
           <ul class="navbar-nav">
