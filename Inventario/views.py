@@ -477,7 +477,7 @@ def carga_masiva(request):
 
         productos_creados = 0
         productos_actualizados = 0
-        errores = [] # Para reportar IDs no encontrados
+        errores = []
 
         try:
             with transaction.atomic():
@@ -488,7 +488,6 @@ def carga_masiva(request):
                 headers_lower = [h.lower().strip() for h in headers]
                 
                 try:
-                    # --- 1. AÑADIMOS 'id' A LAS CABECERAS ---
                     idx_id = headers_lower.index('id') 
                     idx_id_tienda = headers_lower.index('id_tienda')
                     idx_nombre = headers_lower.index('nombre')
@@ -502,14 +501,12 @@ def carga_masiva(request):
                     return redirect('carga_masiva')
 
                 for row in sheet.iter_rows(min_row=2, values_only=True):
-                    # --- 2. LEEMOS EL ID DE LA BASE DE DATOS ---
                     db_id = row[idx_id] 
                     nombre = row[idx_nombre]
                     
-                    if not nombre: # Si no hay nombre, saltamos la fila
+                    if not nombre:
                         continue
 
-                    # Leemos el resto de los datos
                     id_tienda = row[idx_id_tienda]
                     descripcion = row[idx_desc]
                     precio = int(row[idx_precio])
@@ -519,15 +516,11 @@ def carga_masiva(request):
 
                     categoria, _ = Categoria.objects.get_or_create(nombre=categoria_nombre)
                     marca, _ = Marca.objects.get_or_create(nombre=marca_nombre)
-
-                    # --- 3. LÓGICA DE ACTUALIZAR O CREAR BASADA EN 'db_id' ---
                     
                     if db_id:
-                        # RUTA DE ACTUALIZACIÓN (el ID existe)
                         try:
                             producto = Producto.objects.get(id=db_id)
                             
-                            # Actualizamos todos los campos
                             producto.id_tienda = id_tienda
                             producto.nombre = nombre
                             producto.descripcion = descripcion
@@ -535,15 +528,13 @@ def carga_masiva(request):
                             producto.stock = stock
                             producto.categoria = categoria
                             producto.marca = marca
-                            producto.save() # Guarda todos los cambios
-                            
+                            producto.save() 
+
                             productos_actualizados += 1
                         except Producto.DoesNotExist:
                             errores.append(f"El ID {db_id} ('{nombre}') no existe. Se ignoró esta fila.")
                     
                     else:
-                        # RUTA DE CREACIÓN (el ID está en blanco)
-                        # (Opcional: puedes añadir un chequeo de duplicados aquí si quieres)
                         
                         producto = Producto.objects.create(
                             id_tienda=id_tienda,
@@ -556,7 +547,6 @@ def carga_masiva(request):
                         )
                         productos_creados += 1
                         
-                        # Asignar imagen (solo para productos nuevos)
                         imagen_encontrada = None
                         for extension in ['.png', '.jpg', '.jpeg', '.webp']:
                             if (nombre + extension) in imagenes_zip:
@@ -581,25 +571,23 @@ def carga_masiva(request):
 
 
 @role_required('admin', 'staff')
-def descargar_plantilla_productos(request): # Renombré la función
+def descargar_plantilla_productos(request):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Productos"
 
-    # --- AÑADIMOS 'id' A LA PLANTILLA ---
     headers = ['id_web', 'id_tienda', 'nombre', 'descripcion', 'precio', 'stock', 'categoria', 'marca']
     ws.append(headers)
     
-    # Marcamos la columna 'id' como importante
     for cell in ws[1]:
         cell.font = openpyxl.styles.Font(bold=True)
-    ws['A1'].font = openpyxl.styles.Font(bold=True, color="FF0000") # ID en rojo
+    ws['A1'].font = openpyxl.styles.Font(bold=True, color="FF0000")
 
     productos = Producto.objects.select_related('categoria', 'marca').all().order_by('nombre')
 
     for producto in productos:
         ws.append([
-            producto.id, # 👈 AÑADIDO
+            producto.id,
             producto.id_tienda,
             producto.nombre,
             producto.descripcion,
